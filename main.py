@@ -12,6 +12,8 @@ file_content = read_file("notes.txt")
 user_question = input("Ask me something: ")
 full_message = "Here is some context from a file:\n" + file_content + "\n\nNow answer this question: " + user_question
 
+print("DEBUG - full message being sent:", full_message)
+
 response = requests.post(
     "https://integrate.api.nvidia.com/v1/chat/completions",
     headers={
