@@ -15,7 +15,7 @@ def ask_ai(message):
             "Content-Type": "application/json"
         },
         json={
-            "model": "meta/llama-3.1-8b-instruct",
+            "model": "deepseek-ai/deepseek-v4-flash",
             "messages": [
                 {"role": "user", "content": message}
             ]
