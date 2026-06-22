@@ -26,7 +26,7 @@ def ask_ai(message):
 
 user_question = input("Ask me something: ")
 
-decision_prompt = "I have a file called notes.txt that may contain useful context. The user asked: '" + user_question + "'. Should I read notes.txt to answer this? Reply with only YES or NO, nothing else."
+decision_prompt = "There is a file called notes.txt with personal facts about the user (like their favorite color and project name). The user asked: '" + user_question + "'. If answering this requires knowing personal facts about the user, reply YES. Otherwise reply NO. Reply with only one word: YES or NO."
 decision = ask_ai(decision_prompt)
 
 print("DEBUG - AI decision:", decision)
