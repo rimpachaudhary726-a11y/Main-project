@@ -6,27 +6,36 @@ def read_file(filename):
         content = f.read()
     return content
 
-api_key = os.environ["NVIDIA_API_KEY"]
+def ask_ai(message):
+    api_key = os.environ["NVIDIA_API_KEY"]
+    response = requests.post(
+        "https://integrate.api.nvidia.com/v1/chat/completions",
+        headers={
+            "Authorization": "Bearer " + api_key,
+            "Content-Type": "application/json"
+        },
+        json={
+            "model": "meta/llama-3.1-8b-instruct",
+            "messages": [
+                {"role": "user", "content": message}
+            ]
+        }
+    )
+    data = response.json()
+    return data["choices"][0]["message"]["content"]
 
-file_content = read_file("notes.txt")
 user_question = input("Ask me something: ")
-full_message = "Here is some context from a file:\n" + file_content + "\n\nNow answer this question: " + user_question
 
-print("DEBUG - full message being sent:", full_message)
+decision_prompt = "I have a file called notes.txt that may contain useful context. The user asked: '" + user_question + "'. Should I read notes.txt to answer this? Reply with only YES or NO, nothing else."
+decision = ask_ai(decision_prompt)
 
-response = requests.post(
-    "https://integrate.api.nvidia.com/v1/chat/completions",
-    headers={
-        "Authorization": "Bearer " + api_key,
-        "Content-Type": "application/json"
-    },
-    json={
-        "model": "meta/llama-3.1-8b-instruct",
-        "messages": [
-            {"role": "user", "content": full_message}
-        ]
-    }
-)
+print("DEBUG - AI decision:", decision)
 
-data = response.json()
-print(data["choices"][0]["message"]["content"])
+if "YES" in decision.upper():
+    file_content = read_file("notes.txt")
+    final_prompt = "Here is context from a file:\n" + file_content + "\n\nNow answer this question: " + user_question
+else:
+    final_prompt = user_question
+
+answer = ask_ai(final_prompt)
+print(answer)
