@@ -55,14 +55,23 @@ User question: """ + user_question + """
 Reply with ONLY one word: read_file, write_file, run_command, or none."""
     return ask_ai(prompt).strip().lower()
 
-while True:
-    user_question = input("Ask me something (or type quit): ")
+def make_plan(goal):
+    prompt = """Break this goal into 2-4 short, numbered steps. Each step should be something simple like answering a question, writing a file, or running a command.
+Goal: """ + goal + """
 
-    if user_question.lower() == "quit":
-        print("Goodbye!")
-        break
+Reply with ONLY a numbered list, one short step per line. No extra text."""
+    plan_text = ask_ai(prompt)
+    steps = []
+    for line in plan_text.split("\n"):
+        line = line.strip()
+        if line and line[0].isdigit():
+            cleaned = line.split(".", 1)[-1].strip()
+            if cleaned:
+                steps.append(cleaned)
+    return steps
 
-    question_lower = user_question.lower()
+def handle_single_question(question):
+    question_lower = question.lower()
 
     write_keywords = ["write", "save", "create a file", "put this in a file"]
     needs_write = any(word in question_lower for word in write_keywords)
@@ -80,30 +89,48 @@ while True:
     elif needs_file:
         tool = "read_file"
     else:
-        tool = decide_tool(user_question)
-
-    print("DEBUG - tool chosen:", repr(tool))
+        tool = decide_tool(question)
 
     if "run_command" in tool:
         if "date" in question_lower:
-            output = run_command("date")
+            return run_command("date")
         elif "who" in question_lower:
-            output = run_command("whoami")
+            return run_command("whoami")
         else:
-            output = run_command("ls")
-        print("Command output:", output)
+            return run_command("ls")
     elif "write_file" in tool:
-        answer = ask_ai(user_question)
+        answer = ask_ai(question)
         write_file("output.txt", answer)
-        print("Done! I wrote this to output.txt:")
-        print(answer)
+        return "Wrote to output.txt:\n" + answer
     elif "read_file" in tool:
         file_content = read_file("notes.txt")
-        final_prompt = "Here is context from a file:\n" + file_content + "\n\nNow answer this question: " + user_question
-        answer = ask_ai(final_prompt)
-        print(answer)
+        final_prompt = "Here is context from a file:\n" + file_content + "\n\nNow answer this question: " + question
+        return ask_ai(final_prompt)
     else:
-        answer = ask_ai(user_question)
+        return ask_ai(question)
+
+while True:
+    user_question = input("Ask me something, or type 'goal: ...' for multi-step (or quit): ")
+
+    if user_question.lower() == "quit":
+        print("Goodbye!")
+        break
+
+    if user_question.lower().startswith("goal:"):
+        goal = user_question[5:].strip()
+        print("Planning steps for goal:", goal)
+        steps = make_plan(goal)
+        if not steps:
+            print("Could not create a plan. Try rephrasing the goal.")
+        else:
+            for i, step in enumerate(steps, start=1):
+                print("Step " + str(i) + ": " + step)
+                result = handle_single_question(step)
+                print("Result:", result)
+                print("...")
+        print("Goal complete!")
+    else:
+        answer = handle_single_question(user_question)
         print(answer)
 
     print("---")
