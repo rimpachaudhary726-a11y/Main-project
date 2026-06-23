@@ -62,13 +62,32 @@ while True:
         print("Goodbye!")
         break
 
-    tool = decide_tool(user_question)
+    question_lower = user_question.lower()
+
+    write_keywords = ["write", "save", "create a file", "put this in a file"]
+    needs_write = any(word in question_lower for word in write_keywords)
+
+    personal_keywords = ["favorite", "my color", "my project", "my name"]
+    needs_file = any(word in question_lower for word in personal_keywords)
+
+    command_keywords = ["what files", "list files", "what is the date", "who am i"]
+    needs_command = any(word in question_lower for word in command_keywords)
+
+    if needs_command:
+        tool = "run_command"
+    elif needs_write:
+        tool = "write_file"
+    elif needs_file:
+        tool = "read_file"
+    else:
+        tool = decide_tool(user_question)
+
     print("DEBUG - tool chosen:", repr(tool))
 
     if "run_command" in tool:
-        if "date" in user_question.lower():
+        if "date" in question_lower:
             output = run_command("date")
-        elif "who" in user_question.lower():
+        elif "who" in question_lower:
             output = run_command("whoami")
         else:
             output = run_command("ls")
