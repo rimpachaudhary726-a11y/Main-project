@@ -6,6 +6,10 @@ def read_file(filename):
         content = f.read()
     return content
 
+def write_file(filename, content):
+    with open(filename, "w") as f:
+        f.write(content)
+
 def ask_ai(message):
     api_key = os.environ["NVIDIA_API_KEY"]
     response = requests.post(
@@ -24,18 +28,31 @@ def ask_ai(message):
     data = response.json()
     return data["choices"][0]["message"]["content"]
 
-user_question = input("Ask me something: ")
+while True:
+    user_question = input("Ask me something (or type quit): ")
 
-decision_prompt = "There is a file called notes.txt with personal facts about the user (like their favorite color and project name). The user asked: '" + user_question + "'. If answering this requires knowing personal facts about the user, reply YES. Otherwise reply NO. Reply with only one word: YES or NO."
-decision = ask_ai(decision_prompt)
+    if user_question.lower() == "quit":
+        print("Goodbye!")
+        break
 
-print("DEBUG - AI decision:", decision)
+    write_keywords = ["write", "save", "create a file", "put this in a file"]
+    needs_write = any(word in user_question.lower() for word in write_keywords)
 
-if "YES" in decision.upper():
-    file_content = read_file("notes.txt")
-    final_prompt = "Here is context from a file:\n" + file_content + "\n\nNow answer this question: " + user_question
-else:
-    final_prompt = user_question
+    personal_keywords = ["favorite", "my color", "my project", "my name"]
+    needs_file = any(word in user_question.lower() for word in personal_keywords)
 
-answer = ask_ai(final_prompt)
-print(answer)
+    if needs_write:
+        answer = ask_ai(user_question)
+        write_file("output.txt", answer)
+        print("Done! I wrote this to output.txt:")
+        print(answer)
+    else:
+        if needs_file:
+            file_content = read_file("notes.txt")
+            final_prompt = "Here is context from a file:\n" + file_content + "\n\nNow answer this question: " + user_question
+        else:
+            final_prompt = user_question
+        answer = ask_ai(final_prompt)
+        print(answer)
+
+    print("---")
