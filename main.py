@@ -52,6 +52,9 @@ while True:
     command_keywords = ["what files", "list files", "what is the date", "who am i"]
     needs_command = any(word in user_question.lower() for word in command_keywords)
 
+    print("DEBUG - user_question:", repr(user_question))
+    print("DEBUG - needs_command:", needs_command)
+
     if needs_command:
         if "date" in user_question.lower():
             output = run_command("date")
