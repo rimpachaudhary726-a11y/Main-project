@@ -36,6 +36,18 @@ def ask_ai(message):
     data = response.json()
     return data["choices"][0]["message"]["content"]
 
+def decide_tool(user_question):
+    prompt = """You are an assistant with these tools:
+- read_file: reads notes.txt for personal info (favorite color, project name)
+- write_file: writes AI-generated text to output.txt
+- run_command: runs a safe system command (date, files list, who am i)
+- none: just answer directly, no tool needed
+
+User question: """ + user_question + """
+
+Reply with ONLY one word: read_file, write_file, run_command, or none."""
+    return ask_ai(prompt).strip().lower()
+
 while True:
     user_question = input("Ask me something (or type quit): ")
 
@@ -43,19 +55,10 @@ while True:
         print("Goodbye!")
         break
 
-    write_keywords = ["write", "save", "create a file", "put this in a file"]
-    needs_write = any(word in user_question.lower() for word in write_keywords)
+    tool = decide_tool(user_question)
+    print("DEBUG - tool chosen:", repr(tool))
 
-    personal_keywords = ["favorite", "my color", "my project", "my name"]
-    needs_file = any(word in user_question.lower() for word in personal_keywords)
-
-    command_keywords = ["what files", "list files", "what is the date", "who am i"]
-    needs_command = any(word in user_question.lower() for word in command_keywords)
-
-    print("DEBUG - user_question:", repr(user_question))
-    print("DEBUG - needs_command:", needs_command)
-
-    if needs_command:
+    if "run_command" in tool:
         if "date" in user_question.lower():
             output = run_command("date")
         elif "who" in user_question.lower():
@@ -63,18 +66,18 @@ while True:
         else:
             output = run_command("ls")
         print("Command output:", output)
-    elif needs_write:
+    elif "write_file" in tool:
         answer = ask_ai(user_question)
         write_file("output.txt", answer)
         print("Done! I wrote this to output.txt:")
         print(answer)
-    else:
-        if needs_file:
-            file_content = read_file("notes.txt")
-            final_prompt = "Here is context from a file:\n" + file_content + "\n\nNow answer this question: " + user_question
-        else:
-            final_prompt = user_question
+    elif "read_file" in tool:
+        file_content = read_file("notes.txt")
+        final_prompt = "Here is context from a file:\n" + file_content + "\n\nNow answer this question: " + user_question
         answer = ask_ai(final_prompt)
+        print(answer)
+    else:
+        answer = ask_ai(user_question)
         print(answer)
 
     print("---")
