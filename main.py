@@ -64,6 +64,7 @@ Goal: """ + goal + """
 
 Reply with ONLY a numbered list, one step per line. No extra text."""
     plan_text = ask_ai(prompt)
+    print("DEBUG - raw plan text:", repr(plan_text))
     steps = []
     for line in plan_text.split("\n"):
         line = line.strip()
