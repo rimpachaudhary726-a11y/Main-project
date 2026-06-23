@@ -1,4 +1,5 @@
 import os
+import subprocess
 import requests
 
 def read_file(filename):
@@ -9,6 +10,13 @@ def read_file(filename):
 def write_file(filename, content):
     with open(filename, "w") as f:
         f.write(content)
+
+def run_command(command):
+    allowed_commands = ["ls", "pwd", "date", "whoami"]
+    if command not in allowed_commands:
+        return "That command is not allowed for safety reasons."
+    result = subprocess.run(command, shell=True, capture_output=True, text=True)
+    return result.stdout
 
 def ask_ai(message):
     api_key = os.environ["NVIDIA_API_KEY"]
@@ -41,7 +49,18 @@ while True:
     personal_keywords = ["favorite", "my color", "my project", "my name"]
     needs_file = any(word in user_question.lower() for word in personal_keywords)
 
-    if needs_write:
+    command_keywords = ["what files", "list files", "what is the date", "who am i"]
+    needs_command = any(word in user_question.lower() for word in command_keywords)
+
+    if needs_command:
+        if "date" in user_question.lower():
+            output = run_command("date")
+        elif "who" in user_question.lower():
+            output = run_command("whoami")
+        else:
+            output = run_command("ls")
+        print("Command output:", output)
+    elif needs_write:
         answer = ask_ai(user_question)
         write_file("output.txt", answer)
         print("Done! I wrote this to output.txt:")
