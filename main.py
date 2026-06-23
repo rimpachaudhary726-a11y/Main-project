@@ -28,7 +28,7 @@ def ask_ai(message):
                 "Content-Type": "application/json"
             },
             json={
-                "model": "z-ai/glm-5.1",
+                "model": "deepseek-ai/deepseek-v4-flash",
                 "messages": [
                     {"role": "user", "content": message}
                 ]
