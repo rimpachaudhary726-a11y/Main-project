@@ -20,20 +20,27 @@ def run_command(command):
 
 def ask_ai(message):
     api_key = os.environ["NVIDIA_API_KEY"]
-    response = requests.post(
-        "https://integrate.api.nvidia.com/v1/chat/completions",
-        headers={
-            "Authorization": "Bearer " + api_key,
-            "Content-Type": "application/json"
-        },
-        json={
-            "model": "deepseek-ai/deepseek-v4-flash",
-            "messages": [
-                {"role": "user", "content": message}
-            ]
-        }
-    )
+    try:
+        response = requests.post(
+            "https://integrate.api.nvidia.com/v1/chat/completions",
+            headers={
+                "Authorization": "Bearer " + api_key,
+                "Content-Type": "application/json"
+            },
+            json={
+                "model": "z-ai/glm-5.1",
+                "messages": [
+                    {"role": "user", "content": message}
+                ]
+            },
+            timeout=30
+        )
+    except requests.exceptions.RequestException as e:
+        return "ERROR: could not reach the AI service (" + str(e) + ")"
+
     data = response.json()
+    if "choices" not in data:
+        return "ERROR from API: " + str(data)
     return data["choices"][0]["message"]["content"]
 
 def decide_tool(user_question):
