@@ -56,10 +56,13 @@ Reply with ONLY one word: read_file, write_file, run_command, or none."""
     return ask_ai(prompt).strip().lower()
 
 def make_plan(goal):
-    prompt = """Break this goal into 2-4 short, numbered steps. Each step should be something simple like answering a question, writing a file, or running a command.
+    prompt = """Break this goal into the SMALLEST number of steps possible (usually 1-3, never more than 4).
+Each step must be a complete, standalone action that fully achieves part of the goal -
+do NOT separate "do X" from "report X", combine them into one step.
+
 Goal: """ + goal + """
 
-Reply with ONLY a numbered list, one short step per line. No extra text."""
+Reply with ONLY a numbered list, one step per line. No extra text."""
     plan_text = ask_ai(prompt)
     steps = []
     for line in plan_text.split("\n"):
@@ -70,7 +73,7 @@ Reply with ONLY a numbered list, one short step per line. No extra text."""
                 steps.append(cleaned)
     return steps
 
-def handle_single_question(question):
+def handle_single_question(question, previous_results=""):
     question_lower = question.lower()
 
     write_keywords = ["write", "save", "create a file", "put this in a file"]
@@ -99,7 +102,10 @@ def handle_single_question(question):
         else:
             return run_command("ls")
     elif "write_file" in tool:
-        answer = ask_ai(question)
+        full_question = question
+        if previous_results:
+            full_question = "Context from earlier steps:\n" + previous_results + "\n\nTask: " + question
+        answer = ask_ai(full_question)
         write_file("output.txt", answer)
         return "Wrote to output.txt:\n" + answer
     elif "read_file" in tool:
@@ -107,7 +113,10 @@ def handle_single_question(question):
         final_prompt = "Here is context from a file:\n" + file_content + "\n\nNow answer this question: " + question
         return ask_ai(final_prompt)
     else:
-        return ask_ai(question)
+        full_question = question
+        if previous_results:
+            full_question = "Context from earlier steps:\n" + previous_results + "\n\nTask: " + question
+        return ask_ai(full_question)
 
 while True:
     user_question = input("Ask me something, or type 'goal: ...' for multi-step (or quit): ")
@@ -123,10 +132,12 @@ while True:
         if not steps:
             print("Could not create a plan. Try rephrasing the goal.")
         else:
+            previous_results = ""
             for i, step in enumerate(steps, start=1):
                 print("Step " + str(i) + ": " + step)
-                result = handle_single_question(step)
+                result = handle_single_question(step, previous_results)
                 print("Result:", result)
+                previous_results = previous_results + "\nStep " + str(i) + " (" + step + "): " + result
                 print("...")
         print("Goal complete!")
     else:
