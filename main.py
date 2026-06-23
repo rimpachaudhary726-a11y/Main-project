@@ -19,16 +19,16 @@ def run_command(command):
     return result.stdout
 
 def ask_ai(message):
-    api_key = os.environ["NVIDIA_API_KEY"]
+    api_key = os.environ["CEREBRAS_API_KEY"]
     try:
         response = requests.post(
-            "https://integrate.api.nvidia.com/v1/chat/completions",
+            "https://api.cerebras.ai/v1/chat/completions",
             headers={
                 "Authorization": "Bearer " + api_key,
                 "Content-Type": "application/json"
             },
             json={
-                "model": "deepseek-ai/deepseek-v4-flash",
+                "model": "gpt-oss-120b",
                 "messages": [
                     {"role": "user", "content": message}
                 ]
