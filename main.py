@@ -78,6 +78,7 @@ Reply in EXACTLY this format, nothing else, using text copied exactly from the c
 OLD: <exact text from the file above>
 NEW: <the replacement text>"""
     response = ask_ai(prompt)
+    print("DEBUG - raw edit response:", repr(response))
     old_text = ""
     new_text = ""
     for line in response.split("\n"):
