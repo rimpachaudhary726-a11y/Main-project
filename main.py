@@ -11,6 +11,10 @@ def write_file(filename, content):
     with open(filename, "w") as f:
         f.write(content)
 
+def append_to_file(filename, content):
+    with open(filename, "a") as f:
+        f.write(content)
+
 def edit_file(filename, old_text, new_text):
     content = read_file(filename)
     if old_text not in content:
@@ -50,6 +54,15 @@ def ask_ai(message):
     if "choices" not in data:
         return "ERROR from API: " + str(data)
     return data["choices"][0]["message"]["content"]
+
+def load_history():
+    if not os.path.exists("history.txt"):
+        return ""
+    return read_file("history.txt")
+
+def save_to_history(question, answer):
+    entry = "\nUser asked: " + question + "\nAssistant answered: " + answer + "\n"
+    append_to_file("history.txt", entry)
 
 def decide_tool(user_question):
     prompt = """You are an assistant with these tools:
@@ -130,7 +143,7 @@ The failure was: """ + failure_reason + """
 Rewrite the instruction as a clearer, more specific single step that avoids this failure. Reply with ONLY the new instruction, nothing else."""
     return ask_ai(prompt).strip()
 
-def handle_single_question(question, previous_results=""):
+def handle_single_question(question, previous_results="", history=""):
     question_lower = question.lower()
 
     write_keywords = ["write", "save", "create a file", "put this in a file"]
@@ -145,12 +158,17 @@ def handle_single_question(question, previous_results=""):
     command_keywords = ["what files", "list files", "what is the date", "who am i"]
     needs_command = any(word in question_lower for word in command_keywords)
 
+    memory_keywords = ["earlier", "before", "previously", "remember", "did i ask", "did i say"]
+    needs_memory = any(word in question_lower for word in memory_keywords)
+
     if needs_command:
         tool = "run_command"
     elif needs_edit:
         tool = "edit_file"
     elif needs_write:
         tool = "write_file"
+    elif needs_memory:
+        tool = "memory"
     elif needs_file:
         tool = "read_file"
     else:
@@ -163,6 +181,11 @@ def handle_single_question(question, previous_results=""):
             return run_command("whoami")
         else:
             return run_command("ls")
+    elif "memory" in tool:
+        if not history:
+            return "I don't have any earlier conversation history yet."
+        final_prompt = "Here is our earlier conversation history:\n" + history + "\n\nNow answer this question: " + question
+        return ask_ai(final_prompt)
     elif "edit_file" in tool:
         filename = extract_filename(question, "notes.txt")
         if not os.path.exists(filename):
@@ -192,10 +215,10 @@ def handle_single_question(question, previous_results=""):
             full_question = "Context from earlier steps:\n" + previous_results + "\n\nTask: " + question
         return ask_ai(full_question)
 
-def handle_step_with_retry(step, previous_results="", max_retries=2):
+def handle_step_with_retry(step, previous_results="", history="", max_retries=2):
     current_step = step
     for attempt in range(max_retries + 1):
-        result = handle_single_question(current_step, previous_results)
+        result = handle_single_question(current_step, previous_results, history)
         if not looks_like_failure(result):
             return result, current_step
         if attempt < max_retries:
@@ -203,6 +226,10 @@ def handle_step_with_retry(step, previous_results="", max_retries=2):
             current_step = fix_failed_step(current_step, result)
             print("  (Retrying with: " + current_step + ")")
     return result, current_step
+
+conversation_history = load_history()
+if conversation_history:
+    print("Loaded previous conversation history.")
 
 while True:
     user_question = input("Ask me something, type 'goal: ...', type 'edit: filename | old text | new text', or quit: ")
@@ -231,13 +258,17 @@ while True:
             previous_results = ""
             for i, step in enumerate(steps, start=1):
                 print("Step " + str(i) + ": " + step)
-                result, final_step = handle_step_with_retry(step, previous_results)
+                result, final_step = handle_step_with_retry(step, previous_results, conversation_history)
                 print("Result:", result)
                 previous_results = previous_results + "\nStep " + str(i) + " (" + final_step + "): " + result
                 print("...")
         print("Goal complete!")
+        save_to_history(goal, previous_results)
+        conversation_history = conversation_history + previous_results
     else:
-        answer, _ = handle_step_with_retry(user_question)
+        answer, _ = handle_step_with_retry(user_question, "", conversation_history)
         print(answer)
+        save_to_history(user_question, answer)
+        conversation_history = conversation_history + "\nUser asked: " + user_question + "\nAssistant answered: " + answer + "\n"
 
     print("---")

@@ -1,0 +1,11 @@
+**Short space fact**
+
+*A day on Venus is longer than its year.*
+
+---
+
+**File: `space.txt`**
+
+```text
+A day on Venus is longer than its year.
+```
