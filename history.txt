@@ -4,3 +4,11 @@ Assistant answered: Got it! Let me know if there’s anything you’d like to di
 
 User asked: what is my favorite color
 Assistant answered: Your favorite color is **purple**.
+
+User asked: what did I ask you earlier
+Assistant answered: You’ve asked me two things so far:
+
+1. **“k”** – just a brief message you sent.  
+2. **“what is my favorite color”** – after which I told you that your favorite color is **purple**.  
+
+So the most recent question you asked was “what is my favorite color.”

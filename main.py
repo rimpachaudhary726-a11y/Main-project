@@ -23,6 +23,25 @@ def edit_file(filename, old_text, new_text):
     write_file(filename, new_content)
     return "Replaced text in " + filename + " successfully."
 
+def list_directory():
+    files = os.listdir(".")
+    text_files = [f for f in files if os.path.isfile(f)]
+    return ", ".join(text_files)
+
+def search_files(search_term):
+    matches = []
+    for filename in os.listdir("."):
+        if os.path.isfile(filename) and filename.endswith(".txt"):
+            try:
+                content = read_file(filename)
+                if search_term.lower() in content.lower():
+                    matches.append(filename)
+            except Exception:
+                pass
+    if not matches:
+        return "No files found containing '" + search_term + "'."
+    return "Found '" + search_term + "' in: " + ", ".join(matches)
+
 def run_command(command):
     allowed_commands = ["ls", "pwd", "date", "whoami"]
     if command not in allowed_commands:
@@ -69,12 +88,14 @@ def decide_tool(user_question):
 - read_file: reads a file mentioned by the user
 - write_file: writes AI-generated text to a file
 - edit_file: changes one specific piece of text inside a file, keeping the rest the same
+- list_directory: lists all files that currently exist
+- search_files: searches the content of all .txt files for a specific word or phrase
 - run_command: runs a safe system command (date, files list, who am i)
 - none: just answer directly, no tool needed
 
 User question: """ + user_question + """
 
-Reply with ONLY one word: read_file, write_file, edit_file, run_command, or none."""
+Reply with ONLY one word: read_file, write_file, edit_file, list_directory, search_files, run_command, or none."""
     return ask_ai(prompt).strip().lower()
 
 def extract_filename(question, default):
@@ -88,6 +109,12 @@ If no specific filename is mentioned, reply with ONLY the word: """ + default
     if " " in response or len(response) > 50:
         return default
     return response
+
+def extract_search_term(question):
+    prompt = """The user said: """ + question + """
+
+What word or phrase are they trying to search for? Reply with ONLY that word or phrase, nothing else."""
+    return ask_ai(prompt).strip().strip('"').strip("'")
 
 def get_edit_details(step, filename):
     current_content = read_file(filename)
@@ -155,13 +182,23 @@ def handle_single_question(question, previous_results="", history=""):
     personal_keywords = ["favorite", "my color", "my project", "my name"]
     needs_file = any(word in question_lower for word in personal_keywords)
 
-    command_keywords = ["what files", "list files", "what is the date", "who am i"]
+    command_keywords = ["what is the date", "who am i"]
     needs_command = any(word in question_lower for word in command_keywords)
+
+    list_keywords = ["what files", "list files", "list all files", "show files", "what files exist"]
+    needs_list = any(word in question_lower for word in list_keywords)
+
+    search_keywords = ["search for", "find files with", "which file has", "which file contains"]
+    needs_search = any(word in question_lower for word in search_keywords)
 
     memory_keywords = ["earlier", "before", "previously", "remember", "did i ask", "did i say"]
     needs_memory = any(word in question_lower for word in memory_keywords)
 
-    if needs_command:
+    if needs_search:
+        tool = "search_files"
+    elif needs_list:
+        tool = "list_directory"
+    elif needs_command:
         tool = "run_command"
     elif needs_edit:
         tool = "edit_file"
@@ -174,7 +211,12 @@ def handle_single_question(question, previous_results="", history=""):
     else:
         tool = decide_tool(question)
 
-    if "run_command" in tool:
+    if "search_files" in tool:
+        search_term = extract_search_term(question)
+        return search_files(search_term)
+    elif "list_directory" in tool:
+        return "Files: " + list_directory()
+    elif "run_command" in tool:
         if "date" in question_lower:
             return run_command("date")
         elif "who" in question_lower:
