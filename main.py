@@ -42,6 +42,27 @@ def search_files(search_term):
         return "No files found containing '" + search_term + "'."
     return "Found '" + search_term + "' in: " + ", ".join(matches)
 
+def search_web(query):
+    try:
+        response = requests.post(
+            "https://api.firecrawl.dev/v2/search",
+            headers={"Content-Type": "application/json"},
+            json={"query": query, "limit": 3},
+            timeout=30
+        )
+        data = response.json()
+        if not data.get("success"):
+            return "Web search failed: " + str(data)
+        results = data.get("data", {}).get("web", [])
+        if not results:
+            return "No web results found."
+        summary = ""
+        for r in results:
+            summary = summary + "- " + r.get("title", "") + ": " + r.get("description", "") + " (" + r.get("url", "") + ")\n"
+        return summary
+    except requests.exceptions.RequestException as e:
+        return "ERROR: could not reach web search (" + str(e) + ")"
+
 def run_command(command):
     allowed_commands = ["ls", "pwd", "date", "whoami"]
     if command not in allowed_commands:
@@ -90,12 +111,13 @@ def decide_tool(user_question):
 - edit_file: changes one specific piece of text inside a file, keeping the rest the same
 - list_directory: lists all files that currently exist
 - search_files: searches the content of all .txt files for a specific word or phrase
+- search_web: searches the live internet for current information
 - run_command: runs a safe system command (date, files list, who am i)
 - none: just answer directly, no tool needed
 
 User question: """ + user_question + """
 
-Reply with ONLY one word: read_file, write_file, edit_file, list_directory, search_files, run_command, or none."""
+Reply with ONLY one word: read_file, write_file, edit_file, list_directory, search_files, search_web, run_command, or none."""
     return ask_ai(prompt).strip().lower()
 
 def extract_filename(question, default):
@@ -188,13 +210,18 @@ def handle_single_question(question, previous_results="", history=""):
     list_keywords = ["what files", "list files", "list all files", "show files", "what files exist"]
     needs_list = any(word in question_lower for word in list_keywords)
 
-    search_keywords = ["search for", "find files with", "which file has", "which file contains"]
-    needs_search = any(word in question_lower for word in search_keywords)
+    search_file_keywords = ["search for", "find files with", "which file has", "which file contains"]
+    needs_search_files = any(word in question_lower for word in search_file_keywords)
+
+    web_keywords = ["search the web", "look up", "google", "what is happening", "latest news", "current price"]
+    needs_web = any(word in question_lower for word in web_keywords)
 
     memory_keywords = ["earlier", "before", "previously", "remember", "did i ask", "did i say"]
     needs_memory = any(word in question_lower for word in memory_keywords)
 
-    if needs_search:
+    if needs_web:
+        tool = "search_web"
+    elif needs_search_files:
         tool = "search_files"
     elif needs_list:
         tool = "list_directory"
@@ -211,7 +238,9 @@ def handle_single_question(question, previous_results="", history=""):
     else:
         tool = decide_tool(question)
 
-    if "search_files" in tool:
+    if "search_web" in tool:
+        return search_web(question)
+    elif "search_files" in tool:
         search_term = extract_search_term(question)
         return search_files(search_term)
     elif "list_directory" in tool:
