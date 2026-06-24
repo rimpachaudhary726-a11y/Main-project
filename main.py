@@ -1,5 +1,6 @@
 import os
 import subprocess
+import re
 import requests
 
 def read_file(filename):
@@ -113,6 +114,13 @@ def ask_ai(message):
         return "ERROR from API: " + str(data)
     return data["choices"][0]["message"]["content"]
 
+def summarize_url(url):
+    content = fetch_url(url)
+    if content.startswith("ERROR") or content.startswith("Could not"):
+        return content
+    prompt = "Summarize this web page content in 3-4 sentences:\n\n" + content
+    return ask_ai(prompt)
+
 def load_history():
     if not os.path.exists("history.txt"):
         return ""
@@ -131,12 +139,13 @@ def decide_tool(user_question):
 - search_files: searches the content of all .txt files for a specific word or phrase
 - search_web: searches the live internet for current information
 - fetch_url: fetches the actual content of a specific web page when a URL is given
+- summarize_url: fetches a web page and gives a short summary instead of full content
 - run_command: runs a safe system command (date, files list, who am i)
 - none: just answer directly, no tool needed
 
 User question: """ + user_question + """
 
-Reply with ONLY one word: read_file, write_file, edit_file, list_directory, search_files, search_web, fetch_url, run_command, or none."""
+Reply with ONLY one word: read_file, write_file, edit_file, list_directory, search_files, search_web, fetch_url, summarize_url, run_command, or none."""
     return ask_ai(prompt).strip().lower()
 
 def extract_filename(question, default):
@@ -158,7 +167,6 @@ What word or phrase are they trying to search for? Reply with ONLY that word or 
     return ask_ai(prompt).strip().strip('"').strip("'")
 
 def extract_url(question):
-    import re
     match = re.search(r"https?://\S+", question)
     if match:
         return match.group(0).strip(".,)")
@@ -239,7 +247,8 @@ def handle_single_question(question, previous_results="", history=""):
     search_file_keywords = ["search for", "find files with", "which file has", "which file contains"]
     needs_search_files = any(word in question_lower for word in search_file_keywords)
 
-    has_url = extract_url(question) != ""
+    url_in_question = extract_url(question)
+    wants_summary = "summarize" in question_lower or "summary" in question_lower
 
     web_keywords = ["search the web", "look up", "google", "what is happening", "latest news", "current price"]
     needs_web = any(word in question_lower for word in web_keywords)
@@ -247,7 +256,9 @@ def handle_single_question(question, previous_results="", history=""):
     memory_keywords = ["earlier", "before", "previously", "remember", "did i ask", "did i say"]
     needs_memory = any(word in question_lower for word in memory_keywords)
 
-    if has_url:
+    if url_in_question and wants_summary:
+        tool = "summarize_url"
+    elif url_in_question:
         tool = "fetch_url"
     elif needs_web:
         tool = "search_web"
@@ -268,7 +279,12 @@ def handle_single_question(question, previous_results="", history=""):
     else:
         tool = decide_tool(question)
 
-    if "fetch_url" in tool:
+    if "summarize_url" in tool:
+        url = extract_url(question)
+        if not url:
+            return "Could not find a URL in your message."
+        return summarize_url(url)
+    elif "fetch_url" in tool:
         url = extract_url(question)
         if not url:
             return "Could not find a URL in your message."
