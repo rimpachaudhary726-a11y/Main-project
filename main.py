@@ -63,6 +63,24 @@ def search_web(query):
     except requests.exceptions.RequestException as e:
         return "ERROR: could not reach web search (" + str(e) + ")"
 
+def fetch_url(url):
+    try:
+        response = requests.post(
+            "https://api.firecrawl.dev/v2/scrape",
+            headers={"Content-Type": "application/json"},
+            json={"url": url, "formats": ["markdown"]},
+            timeout=30
+        )
+        data = response.json()
+        if not data.get("success"):
+            return "Could not fetch that page: " + str(data)
+        content = data.get("data", {}).get("markdown", "")
+        if not content:
+            return "Page fetched but no content found."
+        return content[:3000]
+    except requests.exceptions.RequestException as e:
+        return "ERROR: could not reach the page (" + str(e) + ")"
+
 def run_command(command):
     allowed_commands = ["ls", "pwd", "date", "whoami"]
     if command not in allowed_commands:
@@ -112,12 +130,13 @@ def decide_tool(user_question):
 - list_directory: lists all files that currently exist
 - search_files: searches the content of all .txt files for a specific word or phrase
 - search_web: searches the live internet for current information
+- fetch_url: fetches the actual content of a specific web page when a URL is given
 - run_command: runs a safe system command (date, files list, who am i)
 - none: just answer directly, no tool needed
 
 User question: """ + user_question + """
 
-Reply with ONLY one word: read_file, write_file, edit_file, list_directory, search_files, search_web, run_command, or none."""
+Reply with ONLY one word: read_file, write_file, edit_file, list_directory, search_files, search_web, fetch_url, run_command, or none."""
     return ask_ai(prompt).strip().lower()
 
 def extract_filename(question, default):
@@ -137,6 +156,13 @@ def extract_search_term(question):
 
 What word or phrase are they trying to search for? Reply with ONLY that word or phrase, nothing else."""
     return ask_ai(prompt).strip().strip('"').strip("'")
+
+def extract_url(question):
+    import re
+    match = re.search(r"https?://\S+", question)
+    if match:
+        return match.group(0).strip(".,)")
+    return ""
 
 def get_edit_details(step, filename):
     current_content = read_file(filename)
@@ -213,13 +239,17 @@ def handle_single_question(question, previous_results="", history=""):
     search_file_keywords = ["search for", "find files with", "which file has", "which file contains"]
     needs_search_files = any(word in question_lower for word in search_file_keywords)
 
+    has_url = extract_url(question) != ""
+
     web_keywords = ["search the web", "look up", "google", "what is happening", "latest news", "current price"]
     needs_web = any(word in question_lower for word in web_keywords)
 
     memory_keywords = ["earlier", "before", "previously", "remember", "did i ask", "did i say"]
     needs_memory = any(word in question_lower for word in memory_keywords)
 
-    if needs_web:
+    if has_url:
+        tool = "fetch_url"
+    elif needs_web:
         tool = "search_web"
     elif needs_search_files:
         tool = "search_files"
@@ -238,7 +268,12 @@ def handle_single_question(question, previous_results="", history=""):
     else:
         tool = decide_tool(question)
 
-    if "search_web" in tool:
+    if "fetch_url" in tool:
+        url = extract_url(question)
+        if not url:
+            return "Could not find a URL in your message."
+        return fetch_url(url)
+    elif "search_web" in tool:
         return search_web(question)
     elif "search_files" in tool:
         search_term = extract_search_term(question)

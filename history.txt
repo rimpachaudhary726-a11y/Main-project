@@ -18,3 +18,9 @@ Assistant answered: Found 'purple' in: notes.txt, history.txt
 
 User asked: what files exist
 Assistant answered: Files: package.json, .replitignore, pnpm-workspace.yaml, pnpm-lock.yaml, tsconfig.base.json, tsconfig.json, .npmrc, .gitignore, replit.md, .replit, notes.txt, notes. txt, output.txt, space.txt, history.txt, main.py
+
+User asked: search the web for latest AI news
+Assistant answered: - AI News & Artificial Intelligence - TechCrunch: AI News coverage on artificial intelligence and machine learning tech, the companies building them, and the ethical issues AI raises today. (https://techcrunch.com/category/artificial-intelligence/)
+- AI News | Latest News | Insights Powering AI-Driven Business Growth: AI News delivers the latest updates in artificial intelligence, machine learning, deep learning, enterprise AI, and emerging tech worldwide. (https://www.artificialintelligence-news.com/)
+- Artificial Intelligence - AI News - Reuters: Explore the latest artificial intelligence news with Reuters - from AI breakthroughs and technology trends to regulation, ethics, business and global ... (https://www.reuters.com/technology/artificial-intelligence/)
+
