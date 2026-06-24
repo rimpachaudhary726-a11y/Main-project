@@ -89,6 +89,16 @@ def run_command(command):
     result = subprocess.run(command, shell=True, capture_output=True, text=True)
     return result.stdout
 
+def calculate(expression):
+    allowed_chars = "0123456789+-*/(). "
+    if not all(c in allowed_chars for c in expression):
+        return "Invalid characters in expression. Only numbers and + - * / ( ) are allowed."
+    try:
+        result = eval(expression)
+        return "Result: " + str(result)
+    except Exception as e:
+        return "Could not calculate: " + str(e)
+
 def ask_ai(message):
     api_key = os.environ["CEREBRAS_API_KEY"]
     try:
@@ -130,6 +140,12 @@ def save_to_history(question, answer):
     entry = "\nUser asked: " + question + "\nAssistant answered: " + answer + "\n"
     append_to_file("history.txt", entry)
 
+def extract_math_expression(question):
+    match = re.search(r"[\d\s\+\-\*/\(\)\.]{2,}", question)
+    if match:
+        return match.group(0).strip()
+    return ""
+
 def decide_tool(user_question):
     prompt = """You are an assistant with these tools:
 - read_file: reads a file mentioned by the user
@@ -140,12 +156,13 @@ def decide_tool(user_question):
 - search_web: searches the live internet for current information
 - fetch_url: fetches the actual content of a specific web page when a URL is given
 - summarize_url: fetches a web page and gives a short summary instead of full content
+- calculate: performs exact math calculations
 - run_command: runs a safe system command (date, files list, who am i)
 - none: just answer directly, no tool needed
 
 User question: """ + user_question + """
 
-Reply with ONLY one word: read_file, write_file, edit_file, list_directory, search_files, search_web, fetch_url, summarize_url, run_command, or none."""
+Reply with ONLY one word: read_file, write_file, edit_file, list_directory, search_files, search_web, fetch_url, summarize_url, calculate, run_command, or none."""
     return ask_ai(prompt).strip().lower()
 
 def extract_filename(question, default):
@@ -215,7 +232,7 @@ Reply with ONLY a numbered list, one step per line. No extra text."""
     return steps
 
 def looks_like_failure(result):
-    failure_signals = ["error", "could not", "not allowed", "no changes made", "no such file"]
+    failure_signals = ["error", "could not", "not allowed", "no changes made", "no such file", "invalid characters"]
     result_lower = result.lower()
     return any(signal in result_lower for signal in failure_signals)
 
@@ -253,10 +270,16 @@ def handle_single_question(question, previous_results="", history=""):
     web_keywords = ["search the web", "look up", "google", "what is happening", "latest news", "current price"]
     needs_web = any(word in question_lower for word in web_keywords)
 
+    math_keywords = ["calculate", "what is", "plus", "minus", "times", "divided by"]
+    math_expression = extract_math_expression(question)
+    needs_calculate = math_expression != "" and any(word in question_lower for word in math_keywords)
+
     memory_keywords = ["earlier", "before", "previously", "remember", "did i ask", "did i say"]
     needs_memory = any(word in question_lower for word in memory_keywords)
 
-    if url_in_question and wants_summary:
+    if needs_calculate:
+        tool = "calculate"
+    elif url_in_question and wants_summary:
         tool = "summarize_url"
     elif url_in_question:
         tool = "fetch_url"
@@ -279,7 +302,12 @@ def handle_single_question(question, previous_results="", history=""):
     else:
         tool = decide_tool(question)
 
-    if "summarize_url" in tool:
+    if "calculate" in tool:
+        expression = extract_math_expression(question)
+        if not expression:
+            return "Could not find a math expression to calculate."
+        return calculate(expression)
+    elif "summarize_url" in tool:
         url = extract_url(question)
         if not url:
             return "Could not find a URL in your message."
