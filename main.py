@@ -53,9 +53,9 @@ def ask_ai(message):
 
 def decide_tool(user_question):
     prompt = """You are an assistant with these tools:
-- read_file: reads notes.txt for personal info (favorite color, project name)
-- write_file: writes AI-generated text to output.txt
-- edit_file: changes one specific piece of text inside notes.txt to another, keeping the rest of the file the same
+- read_file: reads a file mentioned by the user
+- write_file: writes AI-generated text to a file
+- edit_file: changes one specific piece of text inside a file, keeping the rest the same
 - run_command: runs a safe system command (date, files list, who am i)
 - none: just answer directly, no tool needed
 
@@ -63,6 +63,18 @@ User question: """ + user_question + """
 
 Reply with ONLY one word: read_file, write_file, edit_file, run_command, or none."""
     return ask_ai(prompt).strip().lower()
+
+def extract_filename(question, default):
+    prompt = """The user said: """ + question + """
+
+Does this mention a specific filename (like notes.txt, data.csv, story.txt, etc.)?
+If yes, reply with ONLY that filename, nothing else.
+If no specific filename is mentioned, reply with ONLY the word: """ + default
+    response = ask_ai(prompt).strip()
+    response = response.strip('"').strip("'").strip()
+    if " " in response or len(response) > 50:
+        return default
+    return response
 
 def get_edit_details(step, filename):
     current_content = read_file(filename)
@@ -107,7 +119,7 @@ Reply with ONLY a numbered list, one step per line. No extra text."""
     return steps
 
 def looks_like_failure(result):
-    failure_signals = ["error", "could not", "not allowed", "no changes made"]
+    failure_signals = ["error", "could not", "not allowed", "no changes made", "no such file"]
     result_lower = result.lower()
     return any(signal in result_lower for signal in failure_signals)
 
@@ -152,19 +164,26 @@ def handle_single_question(question, previous_results=""):
         else:
             return run_command("ls")
     elif "edit_file" in tool:
-        old_text, new_text = get_edit_details(question, "notes.txt")
+        filename = extract_filename(question, "notes.txt")
+        if not os.path.exists(filename):
+            return "No such file: " + filename
+        old_text, new_text = get_edit_details(question, filename)
         if not old_text or not new_text:
             return "Could not figure out what to change. Try being more specific."
-        return edit_file("notes.txt", old_text, new_text)
+        return edit_file(filename, old_text, new_text)
     elif "write_file" in tool:
+        filename = extract_filename(question, "output.txt")
         full_question = question
         if previous_results:
             full_question = "Context from earlier steps:\n" + previous_results + "\n\nTask: " + question
         answer = ask_ai(full_question)
-        write_file("output.txt", answer)
-        return "Wrote to output.txt:\n" + answer
+        write_file(filename, answer)
+        return "Wrote to " + filename + ":\n" + answer
     elif "read_file" in tool:
-        file_content = read_file("notes.txt")
+        filename = extract_filename(question, "notes.txt")
+        if not os.path.exists(filename):
+            return "No such file: " + filename
+        file_content = read_file(filename)
         final_prompt = "Here is context from a file:\n" + file_content + "\n\nNow answer this question: " + question
         return ask_ai(final_prompt)
     else:
