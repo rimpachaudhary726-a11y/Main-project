@@ -11,6 +11,14 @@ def write_file(filename, content):
     with open(filename, "w") as f:
         f.write(content)
 
+def edit_file(filename, old_text, new_text):
+    content = read_file(filename)
+    if old_text not in content:
+        return "Could not find that text in " + filename + ". No changes made."
+    new_content = content.replace(old_text, new_text)
+    write_file(filename, new_content)
+    return "Replaced text in " + filename + " successfully."
+
 def run_command(command):
     allowed_commands = ["ls", "pwd", "date", "whoami"]
     if command not in allowed_commands:
@@ -64,7 +72,6 @@ Goal: """ + goal + """
 
 Reply with ONLY a numbered list, one step per line. No extra text."""
     plan_text = ask_ai(prompt)
-    print("DEBUG - raw plan text:", repr(plan_text))
     steps = []
     for line in plan_text.split("\n"):
         line = line.strip()
@@ -120,13 +127,23 @@ def handle_single_question(question, previous_results=""):
         return ask_ai(full_question)
 
 while True:
-    user_question = input("Ask me something, or type 'goal: ...' for multi-step (or quit): ")
+    user_question = input("Ask me something, type 'goal: ...', type 'edit: filename | old text | new text', or quit: ")
 
     if user_question.lower() == "quit":
         print("Goodbye!")
         break
 
-    if user_question.lower().startswith("goal:"):
+    if user_question.lower().startswith("edit:"):
+        parts = user_question[5:].split("|")
+        if len(parts) != 3:
+            print("Format must be: edit: filename | old text | new text")
+        else:
+            filename = parts[0].strip()
+            old_text = parts[1].strip()
+            new_text = parts[2].strip()
+            result = edit_file(filename, old_text, new_text)
+            print(result)
+    elif user_question.lower().startswith("goal:"):
         goal = user_question[5:].strip()
         print("Planning steps for goal:", goal)
         steps = make_plan(goal)
