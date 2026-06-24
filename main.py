@@ -78,7 +78,6 @@ Reply in EXACTLY this format, nothing else, using text copied exactly from the c
 OLD: <exact text from the file above>
 NEW: <the replacement text>"""
     response = ask_ai(prompt)
-    print("DEBUG - raw edit response:", repr(response))
     old_text = ""
     new_text = ""
     for line in response.split("\n"):
@@ -106,6 +105,18 @@ Reply with ONLY a numbered list, one step per line. No extra text."""
             if cleaned:
                 steps.append(cleaned)
     return steps
+
+def looks_like_failure(result):
+    failure_signals = ["error", "could not", "not allowed", "no changes made"]
+    result_lower = result.lower()
+    return any(signal in result_lower for signal in failure_signals)
+
+def fix_failed_step(step, failure_reason):
+    prompt = """This instruction failed: """ + step + """
+The failure was: """ + failure_reason + """
+
+Rewrite the instruction as a clearer, more specific single step that avoids this failure. Reply with ONLY the new instruction, nothing else."""
+    return ask_ai(prompt).strip()
 
 def handle_single_question(question, previous_results=""):
     question_lower = question.lower()
@@ -162,6 +173,18 @@ def handle_single_question(question, previous_results=""):
             full_question = "Context from earlier steps:\n" + previous_results + "\n\nTask: " + question
         return ask_ai(full_question)
 
+def handle_step_with_retry(step, previous_results="", max_retries=2):
+    current_step = step
+    for attempt in range(max_retries + 1):
+        result = handle_single_question(current_step, previous_results)
+        if not looks_like_failure(result):
+            return result, current_step
+        if attempt < max_retries:
+            print("  (Attempt " + str(attempt + 1) + " failed: " + result + ")")
+            current_step = fix_failed_step(current_step, result)
+            print("  (Retrying with: " + current_step + ")")
+    return result, current_step
+
 while True:
     user_question = input("Ask me something, type 'goal: ...', type 'edit: filename | old text | new text', or quit: ")
 
@@ -189,13 +212,13 @@ while True:
             previous_results = ""
             for i, step in enumerate(steps, start=1):
                 print("Step " + str(i) + ": " + step)
-                result = handle_single_question(step, previous_results)
+                result, final_step = handle_step_with_retry(step, previous_results)
                 print("Result:", result)
-                previous_results = previous_results + "\nStep " + str(i) + " (" + step + "): " + result
+                previous_results = previous_results + "\nStep " + str(i) + " (" + final_step + "): " + result
                 print("...")
         print("Goal complete!")
     else:
-        answer = handle_single_question(user_question)
+        answer, _ = handle_step_with_retry(user_question)
         print(answer)
 
     print("---")
