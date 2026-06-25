@@ -37,3 +37,12 @@ Assistant answered: The page explains that “example.com” (and its sibling do
 
 User asked: 
 Assistant answered: Hello! How can I assist you today?
+
+User asked: what is 47 * 83
+Assistant answered: Result: 3901
+
+User asked: 47*38
+Assistant answered: Result: 1786
+
+User asked: 37*46
+Assistant answered: Result: 1702

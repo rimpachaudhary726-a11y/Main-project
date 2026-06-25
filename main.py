@@ -131,6 +131,67 @@ def summarize_url(url):
     prompt = "Summarize this web page content in 3-4 sentences:\n\n" + content
     return ask_ai(prompt)
 
+GENERATED_CODE_FILE = "generated_script.py"
+MAX_CODE_ATTEMPTS = 3
+CODE_TIMEOUT_SECONDS = 10
+
+def write_code(idea, previous_error=""):
+    if previous_error:
+        prompt = """Write a complete, standalone Python script for this idea: """ + idea + """
+
+A previous attempt failed with this error:
+""" + previous_error + """
+
+Fix the code so it works correctly. Reply with ONLY the Python code, no explanations, no markdown code fences."""
+    else:
+        prompt = """Write a complete, standalone Python script for this idea: """ + idea + """
+
+Use only Python's built-in libraries (no external packages). Keep it simple and safe.
+Reply with ONLY the Python code, no explanations, no markdown code fences."""
+    code = ask_ai(prompt)
+    code = code.strip()
+    if code.startswith("```"):
+        code = code.split("\n", 1)[1] if "\n" in code else code
+        if code.endswith("```"):
+            code = code.rsplit("```", 1)[0]
+    write_file(GENERATED_CODE_FILE, code.strip())
+    return code
+
+def run_generated_code():
+    try:
+        result = subprocess.run(
+            ["python3", GENERATED_CODE_FILE],
+            capture_output=True,
+            text=True,
+            timeout=CODE_TIMEOUT_SECONDS
+        )
+        if result.returncode != 0:
+            return False, result.stderr
+        return True, result.stdout
+    except subprocess.TimeoutExpired:
+        return False, "Code took too long to run (timeout of " + str(CODE_TIMEOUT_SECONDS) + " seconds)."
+
+def build_and_fix_workflow(idea):
+    print("Building code for: " + idea)
+    code = write_code(idea)
+    for attempt in range(1, MAX_CODE_ATTEMPTS + 1):
+        print("--- Attempt " + str(attempt) + " ---")
+        print("Running generated code...")
+        success, output = run_generated_code()
+        if success:
+            print("Success! Output:")
+            print(output)
+            return "Workflow built and ran successfully after " + str(attempt) + " attempt(s)."
+        else:
+            print("Failed with error:")
+            print(output)
+            if attempt < MAX_CODE_ATTEMPTS:
+                print("Asking AI to fix the code...")
+                code = write_code(idea, previous_error=output)
+            else:
+                return "Could not get the workflow working after " + str(MAX_CODE_ATTEMPTS) + " attempts. Last error:\n" + output
+    return "Unexpected end of retry loop."
+
 def load_history():
     if not os.path.exists("history.txt"):
         return ""
@@ -382,13 +443,19 @@ if conversation_history:
     print("Loaded previous conversation history.")
 
 while True:
-    user_question = input("Ask me something, type 'goal: ...', type 'edit: filename | old text | new text', or quit: ")
+    user_question = input("Ask me something, type 'goal: ...', type 'build: <idea>', type 'edit: filename | old text | new text', or quit: ")
 
     if user_question.lower() == "quit":
         print("Goodbye!")
         break
 
-    if user_question.lower().startswith("edit:"):
+    if user_question.lower().startswith("build:"):
+        idea = user_question[6:].strip()
+        result = build_and_fix_workflow(idea)
+        print(result)
+        save_to_history(user_question, result)
+        conversation_history = conversation_history + "\nUser asked: " + user_question + "\nAssistant answered: " + result + "\n"
+    elif user_question.lower().startswith("edit:"):
         parts = user_question[5:].split("|")
         if len(parts) != 3:
             print("Format must be: edit: filename | old text | new text")
