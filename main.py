@@ -383,10 +383,19 @@ REQUIREMENTS:
             code = code.rsplit("```", 1)[0]
 
     write_file(GITHUB_CODE_FILE, code.strip())
-    if requirements and requirements.upper() != "NONE":
-        write_file(GITHUB_REQUIREMENTS_FILE, requirements.strip())
+
+    cleaned_lines = []
+    for line in requirements.split("\n"):
+        line = line.strip().strip("`").strip()
+        if line and line.upper() != "NONE":
+            cleaned_lines.append(line)
+    requirements = "\n".join(cleaned_lines)
+
+    if requirements:
+        write_file(GITHUB_REQUIREMENTS_FILE, requirements)
     elif os.path.exists(GITHUB_REQUIREMENTS_FILE):
         os.remove(GITHUB_REQUIREMENTS_FILE)
+    return code
     return code
 
 def ensure_python_runner_yaml(repo_name):
