@@ -396,7 +396,6 @@ REQUIREMENTS:
     elif os.path.exists(GITHUB_REQUIREMENTS_FILE):
         os.remove(GITHUB_REQUIREMENTS_FILE)
     return code
-    return code
 
 def ensure_python_runner_yaml(repo_name):
     yaml_content = """name: Run Generated Code
@@ -454,6 +453,14 @@ def validate_python_on_github(repo_name):
     logs = get_run_logs(repo_name, run.get("id"))
     return False, logs[-3000:]
 
+def is_missing_secret_error(log_text):
+    text_lower = log_text.lower()
+    if "environment variable" in text_lower and "not set" in text_lower:
+        return True
+    if "keyerror" in text_lower and ("api_key" in text_lower or "token" in text_lower):
+        return True
+    return False
+
 def build_and_fix_on_github(idea, repo_name):
     print("Building: " + idea)
     write_code_for_github(idea)
@@ -465,6 +472,10 @@ def build_and_fix_on_github(idea, repo_name):
             return "Working version pushed after " + str(attempt) + " attempt(s): https://github.com/" + username + "/" + repo_name
         print("Failed:")
         print(output)
+        if is_missing_secret_error(output):
+            return ("Stopped early: this looks like a missing repo secret, not a code bug.\n"
+                     "Add the required secret on the repo (Settings -> Secrets and variables -> Actions),\n"
+                     "then run this same 'make:' command again.\nError seen:\n" + output)
         if attempt < MAX_GITHUB_ATTEMPTS:
             write_code_for_github(idea, previous_error=output)
         else:
