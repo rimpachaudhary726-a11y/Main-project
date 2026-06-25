@@ -60,3 +60,169 @@ User asked: write the n8n workflow JSON for a workflow with these nodes: a Sched
 Assistant answered: ```json
 {"error":true,"reason":"Not Found"}
 ```
+
+User asked: write the n8n workflow JSON for a workflow with these nodes: a Schedule Trigger that runs daily, an HTTP Request node that calls https://api.open-meteo.com/v1/forecast, a Set node that extracts the temperature, and an IF node that checks if temperature is above 30. Include proper connections between all four nodes. Write it to a file called weather_workflow.json
+Assistant answered: Wrote to weather_workflow.json:
+Below is the complete **n8n** workflow JSON that fulfills the requested design:
+
+```json
+{
+  "name": "Weather Forecast – Daily Check",
+  "nodes": [
+    {
+      "parameters": {
+        "cron": {
+          "type": "custom",
+          "custom": {
+            "minute": "0",
+            "hour": "0",
+            "dayOfMonth": "*",
+            "month": "*",
+            "dayOfWeek": "*"
+          }
+        }
+      },
+      "id": "1",
+      "name": "Daily Schedule",
+      "type": "n8n-nodes-base.schedule",
+      "typeVersion": 1,
+      "position": [
+        250,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.open-meteo.com/v1/forecast",
+        "options": {},
+        "queryParametersUi": {
+          "parameter": [
+            {
+              "name": "latitude",
+              "value": "35"
+            },
+            {
+              "name": "longitude",
+              "value": "139"
+            },
+            {
+              "name": "hourly",
+              "value": "temperature_2m"
+            },
+            {
+              "name": "current_weather",
+              "value": "true"
+            }
+          ]
+        },
+        "responseFormat": "json"
+      },
+      "id": "2",
+      "name": "Get Weather",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        550,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "temperature",
+              "value": "={{ $json[\"hourly\"][\"temperature_2m\"][0] }}",
+              "type": "json"
+            }
+          ]
+        }
+      },
+      "id": "3",
+      "name": "Extract Temperature",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        850,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json[\"temperature\"] }}",
+              "operation": "greaterThan",
+              "value2": 30
+            }
+          ]
+        }
+      },
+      "id": "4",
+      "name": "Temp > 30?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        1150,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Daily Schedule": {
+      "main": [
+        [
+          {
+            "node": "Get Weather",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Weather": {
+      "main": [
+        [
+          {
+            "node": "Extract Temperature",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Temperature": {
+      "main": [
+        [
+          {
+            "node": "Temp > 30?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "versionId": "1",
+  "id": "weather_workflow"
+}
+```
+
+### How to use it
+1. Copy the JSON above into a file named **`weather_workflow.json`**.
+2. In n8n, open **Import** → **Import from File** and select the `weather_workflow.json` file.
+3. After importing, the workflow will appear with the four nodes linked as follows:
+
+```
+Daily Schedule → Get Weather → Extract Temperature → Temp > 30?
+```
+
+- **Daily Schedule** fires once every day at 00:00 (midnight).
+- **Get Weather** queries the Open‑Meteo API for the current temperature.
+- **Extract Temperature** pulls the first temperature value from the response (`hourly.temperature_2m[0]`) and stores it as `temperature`.
+- **Temp > 30?** evaluates whether the extracted temperature exceeds 30 °C. The **true** branch can be extended with further actions (e.g., send a notification), while the **false** branch can remain empty or be used for alternative handling.
+
+Feel free to adjust the latitude/longitude, the cron timing, or any other parameters to suit your needs.

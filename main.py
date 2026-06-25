@@ -99,6 +99,67 @@ def calculate(expression):
     except Exception as e:
         return "Could not calculate: " + str(e)
 
+def github_headers():
+    token = os.environ["GITHUB_TOKEN"]
+    return {
+        "Authorization": "Bearer " + token,
+        "Accept": "application/vnd.github+json"
+    }
+
+def create_github_repo(repo_name, description="Created by my agent", private=False):
+    try:
+        response = requests.post(
+            "https://api.github.com/user/repos",
+            headers=github_headers(),
+            json={
+                "name": repo_name,
+                "description": description,
+                "private": private
+            },
+            timeout=30
+        )
+        data = response.json()
+        if response.status_code not in [200, 201]:
+            return "Could not create repo: " + str(data.get("message", data))
+        return "Created repo: " + data.get("html_url", repo_name)
+    except requests.exceptions.RequestException as e:
+        return "ERROR: could not reach GitHub (" + str(e) + ")"
+
+def get_github_username():
+    try:
+        response = requests.get(
+            "https://api.github.com/user",
+            headers=github_headers(),
+            timeout=30
+        )
+        data = response.json()
+        return data.get("login", "")
+    except requests.exceptions.RequestException:
+        return ""
+
+def create_github_file(repo_name, file_path, content, commit_message="Added by my agent"):
+    import base64
+    username = get_github_username()
+    if not username:
+        return "Could not determine GitHub username."
+    encoded_content = base64.b64encode(content.encode()).decode()
+    try:
+        response = requests.put(
+            "https://api.github.com/repos/" + username + "/" + repo_name + "/contents/" + file_path,
+            headers=github_headers(),
+            json={
+                "message": commit_message,
+                "content": encoded_content
+            },
+            timeout=30
+        )
+        data = response.json()
+        if response.status_code not in [200, 201]:
+            return "Could not create file: " + str(data.get("message", data))
+        return "Created file " + file_path + " in " + repo_name
+    except requests.exceptions.RequestException as e:
+        return "ERROR: could not reach GitHub (" + str(e) + ")"
+
 def ask_ai(message):
     api_key = os.environ["CEREBRAS_API_KEY"]
     try:
@@ -345,8 +406,6 @@ def handle_single_question(question, previous_results="", history=""):
         tool = "write_file"
     elif url_in_question and wants_summary:
         tool = "summarize_url"
-    elif url_in_question and wants_fetch:
-        tool = "fetch_url"
     elif url_in_question:
         tool = "fetch_url"
     elif needs_web:
@@ -446,13 +505,25 @@ if conversation_history:
     print("Loaded previous conversation history.")
 
 while True:
-    user_question = input("Ask me something, type 'goal: ...', type 'build: <idea>', type 'edit: filename | old text | new text', or quit: ")
+    user_question = input("Ask me something, type 'goal: ...', type 'build: <idea>', type 'github: repo_name | file_path | content', or quit: ")
 
     if user_question.lower() == "quit":
         print("Goodbye!")
         break
 
-    if user_question.lower().startswith("build:"):
+    if user_question.lower().startswith("github:"):
+        parts = user_question[7:].split("|")
+        if len(parts) != 3:
+            print("Format must be: github: repo_name | file_path | content")
+        else:
+            repo_name = parts[0].strip()
+            file_path = parts[1].strip()
+            content = parts[2].strip()
+            repo_result = create_github_repo(repo_name)
+            print(repo_result)
+            file_result = create_github_file(repo_name, file_path, content)
+            print(file_result)
+    elif user_question.lower().startswith("build:"):
         idea = user_question[6:].strip()
         result = build_and_fix_workflow(idea)
         print(result)
