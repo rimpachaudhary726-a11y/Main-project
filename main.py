@@ -331,7 +331,19 @@ def write_code_for_github(idea, previous_error=""):
     base_rules = """The script must run end-to-end with no manual input required (don't use
 input(), since this runs non-interactively on GitHub Actions). External packages are fine if
 needed (e.g. requests). If the script needs an API key, read it with
-os.environ.get('CEREBRAS_API_KEY') — never hardcode any key."""
+os.environ.get('CEREBRAS_API_KEY') — never hardcode any key.
+
+CRITICAL RULES — do not violate these:
+- Do NOT add silent fallback behavior that catches an error and returns a fake/placeholder
+  response instead of the real result. If something fails (missing key, bad API response,
+  wrong model name, network error), print the real error and exit with sys.exit(1) so the
+  failure is visible, not hidden behind a fake success.
+- Do NOT guess or invent an API model name or endpoint. If the idea needs the Cerebras API,
+  use exactly this:
+  endpoint = "https://api.cerebras.ai/v1/chat/completions"
+  model = "gpt-oss-120b"
+- Never wrap the core logic in a broad try/except that swallows the error and substitutes
+  unrelated dummy output. A failed run must look like a failed run."""
 
     if previous_error:
         prompt = """Write a complete, standalone Python script for this idea: """ + idea + """
@@ -339,7 +351,8 @@ os.environ.get('CEREBRAS_API_KEY') — never hardcode any key."""
 A previous attempt failed with this error when run on GitHub Actions:
 """ + previous_error + """
 
-Fix the code so it runs correctly without crashing. """ + base_rules + """
+Fix the ROOT CAUSE of this exact error so the script actually works — do not just catch the
+error and return a fake/fallback response instead. """ + base_rules + """
 Reply in EXACTLY this format, nothing else:
 CODE:
 <the full python code>
