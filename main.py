@@ -1,6 +1,10 @@
 import os
 import subprocess
 import re
+import time
+import zipfile
+import io
+import base64
 import requests
 
 def read_file(filename):
@@ -106,6 +110,18 @@ def github_headers():
         "Accept": "application/vnd.github+json"
     }
 
+def get_github_username():
+    try:
+        response = requests.get(
+            "https://api.github.com/user",
+            headers=github_headers(),
+            timeout=30
+        )
+        data = response.json()
+        return data.get("login", "")
+    except requests.exceptions.RequestException:
+        return ""
+
 def create_github_repo(repo_name, description="Created by my agent", private=False):
     try:
         response = requests.post(
@@ -125,32 +141,36 @@ def create_github_repo(repo_name, description="Created by my agent", private=Fal
     except requests.exceptions.RequestException as e:
         return "ERROR: could not reach GitHub (" + str(e) + ")"
 
-def get_github_username():
+def get_github_file_sha(repo_name, file_path):
+    username = get_github_username()
+    if not username:
+        return None
     try:
         response = requests.get(
-            "https://api.github.com/user",
+            "https://api.github.com/repos/" + username + "/" + repo_name + "/contents/" + file_path,
             headers=github_headers(),
             timeout=30
         )
-        data = response.json()
-        return data.get("login", "")
+        if response.status_code == 200:
+            return response.json().get("sha")
     except requests.exceptions.RequestException:
-        return ""
+        pass
+    return None
 
 def create_github_file(repo_name, file_path, content, commit_message="Added by my agent"):
-    import base64
     username = get_github_username()
     if not username:
         return "Could not determine GitHub username."
     encoded_content = base64.b64encode(content.encode()).decode()
+    body = {"message": commit_message, "content": encoded_content}
+    sha = get_github_file_sha(repo_name, file_path)
+    if sha:
+        body["sha"] = sha
     try:
         response = requests.put(
             "https://api.github.com/repos/" + username + "/" + repo_name + "/contents/" + file_path,
             headers=github_headers(),
-            json={
-                "message": commit_message,
-                "content": encoded_content
-            },
+            json=body,
             timeout=30
         )
         data = response.json()
@@ -159,6 +179,56 @@ def create_github_file(repo_name, file_path, content, commit_message="Added by m
         return "Created file " + file_path + " in " + repo_name
     except requests.exceptions.RequestException as e:
         return "ERROR: could not reach GitHub (" + str(e) + ")"
+
+def trigger_github_workflow(repo_name, workflow_filename="run.yml"):
+    username = get_github_username()
+    url = "https://api.github.com/repos/" + username + "/" + repo_name + "/actions/workflows/" + workflow_filename + "/dispatches"
+    try:
+        response = requests.post(url, headers=github_headers(), json={"ref": "main"}, timeout=20)
+    except requests.exceptions.RequestException as e:
+        return False, "ERROR: could not reach GitHub (" + str(e) + ")"
+    if response.status_code == 204:
+        return True, "Triggered."
+    return False, "Failed to trigger run (" + str(response.status_code) + "): " + response.text
+
+def get_latest_run(repo_name, workflow_filename="run.yml"):
+    username = get_github_username()
+    url = "https://api.github.com/repos/" + username + "/" + repo_name + "/actions/workflows/" + workflow_filename + "/runs"
+    try:
+        response = requests.get(url, headers=github_headers(), params={"per_page": 1}, timeout=20)
+        runs = response.json().get("workflow_runs", [])
+        if runs:
+            return runs[0]
+    except requests.exceptions.RequestException:
+        pass
+    return None
+
+def wait_for_run_completion(repo_name, previous_run_id=None, workflow_filename="run.yml", timeout_seconds=300):
+    waited = 0
+    run = None
+    while waited < timeout_seconds:
+        time.sleep(10)
+        waited += 10
+        run = get_latest_run(repo_name, workflow_filename)
+        if run and run.get("id") != previous_run_id and run.get("status") == "completed":
+            return run
+    return run
+
+def get_run_logs(repo_name, run_id):
+    username = get_github_username()
+    url = "https://api.github.com/repos/" + username + "/" + repo_name + "/actions/runs/" + str(run_id) + "/logs"
+    try:
+        response = requests.get(url, headers=github_headers(), timeout=30)
+        if response.status_code != 200:
+            return "Could not fetch logs (" + str(response.status_code) + ")"
+        with zipfile.ZipFile(io.BytesIO(response.content)) as z:
+            all_text = ""
+            for name in z.namelist():
+                if name.endswith(".txt"):
+                    all_text += z.read(name).decode("utf-8", errors="ignore") + "\n"
+            return all_text
+    except Exception as e:
+        return "ERROR reading logs: " + str(e)
 
 def ask_ai(message):
     api_key = os.environ["CEREBRAS_API_KEY"]
@@ -251,6 +321,132 @@ def build_and_fix_workflow(idea):
                 code = write_code(idea, previous_error=output)
             else:
                 return "Could not get the workflow working after " + str(MAX_CODE_ATTEMPTS) + " attempts. Last error:\n" + output
+    return "Unexpected end of retry loop."
+
+GITHUB_CODE_FILE = "app.py"
+GITHUB_REQUIREMENTS_FILE = "requirements.txt"
+MAX_GITHUB_ATTEMPTS = 4
+
+def write_code_for_github(idea, previous_error=""):
+    base_rules = """The script must run end-to-end with no manual input required (don't use
+input(), since this runs non-interactively on GitHub Actions). External packages are fine if
+needed (e.g. requests). If the script needs an API key, read it with
+os.environ.get('CEREBRAS_API_KEY') — never hardcode any key."""
+
+    if previous_error:
+        prompt = """Write a complete, standalone Python script for this idea: """ + idea + """
+
+A previous attempt failed with this error when run on GitHub Actions:
+""" + previous_error + """
+
+Fix the code so it runs correctly without crashing. """ + base_rules + """
+Reply in EXACTLY this format, nothing else:
+CODE:
+<the full python code>
+REQUIREMENTS:
+<one pip package per line, or NONE if no external packages are needed>"""
+    else:
+        prompt = """Write a complete, standalone Python script for this idea: """ + idea + """
+
+""" + base_rules + """
+Reply in EXACTLY this format, nothing else:
+CODE:
+<the full python code>
+REQUIREMENTS:
+<one pip package per line, or NONE if no external packages are needed>"""
+
+    response = ask_ai(prompt)
+    if "REQUIREMENTS:" in response:
+        code_part, req_part = response.split("REQUIREMENTS:", 1)
+        code = code_part.replace("CODE:", "").strip()
+        requirements = req_part.strip()
+    else:
+        code = response.replace("CODE:", "").strip()
+        requirements = ""
+
+    if code.startswith("```"):
+        code = code.split("\n", 1)[1] if "\n" in code else code
+        if code.endswith("```"):
+            code = code.rsplit("```", 1)[0]
+
+    write_file(GITHUB_CODE_FILE, code.strip())
+    if requirements and requirements.upper() != "NONE":
+        write_file(GITHUB_REQUIREMENTS_FILE, requirements.strip())
+    elif os.path.exists(GITHUB_REQUIREMENTS_FILE):
+        os.remove(GITHUB_REQUIREMENTS_FILE)
+    return code
+
+def ensure_python_runner_yaml(repo_name):
+    yaml_content = """name: Run Generated Code
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install requirements
+        run: |
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      - name: Run script
+        run: python """ + GITHUB_CODE_FILE + """
+"""
+    return create_github_file(repo_name, ".github/workflows/run.yml", yaml_content, "Add code runner workflow")
+
+def validate_python_on_github(repo_name):
+    print(create_github_repo(repo_name))
+
+    code_content = read_file(GITHUB_CODE_FILE)
+    push_result = create_github_file(repo_name, GITHUB_CODE_FILE, code_content, "Update app.py")
+    print(push_result)
+    if push_result.startswith("ERROR") or push_result.startswith("Could not"):
+        return False, push_result
+
+    if os.path.exists(GITHUB_REQUIREMENTS_FILE):
+        req_content = read_file(GITHUB_REQUIREMENTS_FILE)
+        print(create_github_file(repo_name, GITHUB_REQUIREMENTS_FILE, req_content, "Update requirements.txt"))
+
+    print(ensure_python_runner_yaml(repo_name))
+    time.sleep(5)
+
+    previous_run = get_latest_run(repo_name, "run.yml")
+    previous_run_id = previous_run.get("id") if previous_run else None
+
+    triggered, msg = trigger_github_workflow(repo_name, "run.yml")
+    if not triggered:
+        return False, msg
+
+    print("Waiting for GitHub Actions to run your code (can take a minute or two)...")
+    run = wait_for_run_completion(repo_name, previous_run_id=previous_run_id, workflow_filename="run.yml")
+    if not run or run.get("id") == previous_run_id:
+        return False, "Run did not complete within the timeout."
+
+    if run.get("conclusion") == "success":
+        return True, "Ran successfully on GitHub Actions."
+    logs = get_run_logs(repo_name, run.get("id"))
+    return False, logs[-3000:]
+
+def build_and_fix_on_github(idea, repo_name):
+    print("Building: " + idea)
+    write_code_for_github(idea)
+    for attempt in range(1, MAX_GITHUB_ATTEMPTS + 1):
+        print("--- Attempt " + str(attempt) + " ---")
+        success, output = validate_python_on_github(repo_name)
+        if success:
+            username = get_github_username()
+            return "Working version pushed after " + str(attempt) + " attempt(s): https://github.com/" + username + "/" + repo_name
+        print("Failed:")
+        print(output)
+        if attempt < MAX_GITHUB_ATTEMPTS:
+            write_code_for_github(idea, previous_error=output)
+        else:
+            return "Could not get a working version after " + str(MAX_GITHUB_ATTEMPTS) + " attempts. Last error:\n" + output
     return "Unexpected end of retry loop."
 
 def load_history():
@@ -505,7 +701,7 @@ if conversation_history:
     print("Loaded previous conversation history.")
 
 while True:
-    user_question = input("Ask me something, type 'goal: ...', type 'build: <idea>', type 'github: repo_name | file_path | content', or quit: ")
+    user_question = input("Ask me something, type 'goal: ...', type 'build: <idea>', type 'make: <idea> | repo_name', type 'github: repo_name | file_path | content', or quit: ")
 
     if user_question.lower() == "quit":
         print("Goodbye!")
@@ -523,6 +719,15 @@ while True:
             print(repo_result)
             file_result = create_github_file(repo_name, file_path, content)
             print(file_result)
+    elif user_question.lower().startswith("make:"):
+        parts = user_question[5:].split("|")
+        if len(parts) != 2:
+            print("Format must be: make: idea | repo_name")
+        else:
+            idea = parts[0].strip()
+            repo_name = parts[1].strip()
+            result = build_and_fix_on_github(idea, repo_name)
+            print(result)
     elif user_question.lower().startswith("build:"):
         idea = user_question[6:].strip()
         result = build_and_fix_workflow(idea)
