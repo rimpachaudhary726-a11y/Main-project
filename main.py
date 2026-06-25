@@ -327,6 +327,7 @@ def handle_single_question(question, previous_results="", history=""):
 
     url_in_question = extract_url(question)
     wants_summary = "summarize" in question_lower or "summary" in question_lower
+    wants_fetch = "fetch" in question_lower or "get this page" in question_lower
 
     web_keywords = ["search the web", "look up", "google", "what is happening", "latest news", "current price"]
     needs_web = any(word in question_lower for word in web_keywords)
@@ -340,8 +341,12 @@ def handle_single_question(question, previous_results="", history=""):
 
     if needs_calculate:
         tool = "calculate"
+    elif needs_write:
+        tool = "write_file"
     elif url_in_question and wants_summary:
         tool = "summarize_url"
+    elif url_in_question and wants_fetch:
+        tool = "fetch_url"
     elif url_in_question:
         tool = "fetch_url"
     elif needs_web:
@@ -354,8 +359,6 @@ def handle_single_question(question, previous_results="", history=""):
         tool = "run_command"
     elif needs_edit:
         tool = "edit_file"
-    elif needs_write:
-        tool = "write_file"
     elif needs_memory:
         tool = "memory"
     elif needs_file:

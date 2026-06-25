@@ -46,3 +46,17 @@ Assistant answered: Result: 1786
 
 User asked: 37*46
 Assistant answered: Result: 1702
+
+User asked: build: a script that prints the first 10 prime numbers
+Assistant answered: Workflow built and ran successfully after 1 attempt(s).
+
+User asked: build: a script that reads notes.txt, counts how many times each word appears, and writes the top 5 most common words with their counts to a new file called word_counts.txt
+Assistant answered: Workflow built and ran successfully after 1 attempt(s).
+
+User asked: build: a workflow that fetches the current date, calculates how many days are left until January 1 2027, and writes a message about it to a file called countdown.txt
+Assistant answered: Workflow built and ran successfully after 1 attempt(s).
+
+User asked: write the n8n workflow JSON for a workflow with these nodes: a Schedule Trigger that runs daily, an HTTP Request node that calls https://api.open-meteo.com/v1/forecast, a Set node that extracts the temperature, and an IF node that checks if temperature is above 30. Include proper connections between all four nodes. Write it to a file called weather_workflow.json
+Assistant answered: ```json
+{"error":true,"reason":"Not Found"}
+```

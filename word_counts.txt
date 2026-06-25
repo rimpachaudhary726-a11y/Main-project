@@ -1,0 +1,5 @@
+my: 2
+is: 2
+favorite: 1
+color: 1
+purple: 1
