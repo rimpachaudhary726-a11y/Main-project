@@ -1,124 +1,89 @@
 #!/usr/bin/env python3
 """
-A minimal standalone chatbot that talks to the Cerebras API.
+A simple chatbot client that calls the Cerebras chat completion API.
 
-The script reads a user prompt from the command line arguments or stdin,
-sends it to the Cerebras chat completion endpoint, and prints the assistant
-reply.
+The script expects two environment variables:
+- CEREBRAS_API_KEY: the API key for authentication.
+- CHAT_PROMPT: the user prompt to send to the model.
 
-It exits with a non‑zero status and a clear error message if:
-* The CEREBRAS_API_KEY environment variable is missing.
-* The HTTP request fails or returns a non‑200 status.
-* The response payload is malformed.
+If either variable is missing, the script prints an error message to stderr
+and exits with a non‑zero status code.
+
+The response from the model is printed to stdout.
 """
 
 import os
 import sys
 import json
-import textwrap
 
-import requests
+try:
+    import requests
+except ImportError as e:
+    print("Missing required package 'requests'. Install it via pip.", file=sys.stderr)
+    raise
 
-# ----------------------------------------------------------------------
-# Configuration
-# ----------------------------------------------------------------------
+# Constants for the Cerebras API
 API_ENDPOINT = "https://api.cerebras.ai/v1/chat/completions"
 MODEL_NAME = "gpt-oss-120b"
-TIMEOUT = 30  # seconds for the HTTP request
 
+def get_env_var(name: str) -> str:
+    """Retrieve an environment variable or exit with an error."""
+    value = os.environ.get(name)
+    if not value:
+        print(f"Error: environment variable '{name}' is not set.", file=sys.stderr)
+        sys.exit(1)
+    return value
 
-def fatal(msg: str) -> None:
-    """Print an error message to stderr and exit with status 1."""
-    print(f"ERROR: {msg}", file=sys.stderr)
-    sys.exit(1)
-
-
-def get_api_key() -> str:
-    """Retrieve the Cerebras API key from the environment."""
-    key = os.getenv("CEREBRAS_API_KEY")
-    if not key:
-        fatal("CEREBRAS_API_KEY environment variable is not set.")
-    return key
-
-
-def get_user_prompt() -> str:
-    """
-    Determine the user prompt.
-
-    Preference order:
-    1. Command‑line arguments (joined with spaces)
-    2. Entire stdin (useful in CI pipelines)
-    3. A default placeholder prompt (ensures the script can run without input)
-    """
-    if len(sys.argv) > 1:
-        return " ".join(sys.argv[1:]).strip()
-
-    # Read everything from stdin (non‑blocking if the stream is empty)
-    if not sys.stdin.isatty():
-        data = sys.stdin.read()
-        if data.strip():
-            return data.strip()
-
-    # Fallback default – the script still produces a valid request.
-    return "Hello, how are you?"
-
-
-def call_cerebras_chat(api_key: str, prompt: str) -> str:
-    """Send a chat request to the Cerebras API and return the assistant's reply."""
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json",
-    }
-
-    payload = {
+def build_payload(prompt: str) -> dict:
+    """Create the JSON payload for the API request."""
+    return {
         "model": MODEL_NAME,
         "messages": [
             {"role": "user", "content": prompt}
         ]
     }
 
+def call_cerebras_api(api_key: str, payload: dict) -> dict:
+    """Send a POST request to the Cerebras chat completions endpoint."""
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
     try:
-        response = requests.post(
-            API_ENDPOINT,
-            headers=headers,
-            json=payload,
-            timeout=TIMEOUT,
-        )
-    except requests.RequestException as exc:
-        fatal(f"Network error while contacting Cerebras API: {exc}")
+        response = requests.post(API_ENDPOINT, headers=headers, json=payload, timeout=30)
+    except requests.RequestException as e:
+        print(f"Network error while contacting Cerebras API: {e}", file=sys.stderr)
+        sys.exit(1)
 
     if response.status_code != 200:
-        # Attempt to surface the API's error message for debugging.
-        try:
-            err_detail = response.json()
-            err_msg = json.dumps(err_detail, indent=2)
-        except Exception:
-            err_msg = response.text
-        fatal(
-            f"Cerebras API returned HTTP {response.status_code}.\n"
-            f"Response body:\n{err_msg}"
-        )
+        # Print the full response body for debugging
+        print(f"Cerebras API returned error {response.status_code}: {response.text}", file=sys.stderr)
+        sys.exit(1)
 
     try:
-        data = response.json()
-        # Expected format: {"choices": [{"message": {"content": "..."}}, ...], ...}
-        choice = data["choices"][0]
-        message = choice["message"]
-        content = message["content"]
-    except (KeyError, IndexError, TypeError) as exc:
-        fatal(f"Malformed response from Cerebras API: {exc}\nFull payload: {data}")
+        return response.json()
+    except json.JSONDecodeError as e:
+        print(f"Failed to parse JSON response from Cerebras API: {e}", file=sys.stderr)
+        sys.exit(1)
 
-    return content
-
+def extract_reply(api_response: dict) -> str:
+    """Extract the assistant's reply from the API response."""
+    try:
+        # Typical response shape: {"choices": [{"message": {"content": "..."} }], ...}
+        return api_response["choices"][0]["message"]["content"]
+    except (KeyError, IndexError) as e:
+        print(f"Unexpected response format from Cerebras API: {e}\nFull response: {api_response}", file=sys.stderr)
+        sys.exit(1)
 
 def main() -> None:
-    api_key = get_api_key()
-    prompt = get_user_prompt()
-    reply = call_cerebras_chat(api_key, prompt)
+    api_key = get_env_var("CEREBRAS_API_KEY")
+    prompt = get_env_var("CHAT_PROMPT")
 
-    # Print the reply; using textwrap to keep CI logs tidy.
-    print(textwrap.dedent(reply).strip())
+    payload = build_payload(prompt)
+    api_response = call_cerebras_api(api_key, payload)
+    reply = extract_reply(api_response)
 
+    print(reply)
 
 if __name__ == "__main__":
     main()

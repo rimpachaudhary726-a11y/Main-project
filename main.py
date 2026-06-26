@@ -369,6 +369,12 @@ REQUIREMENTS:
 <one pip package per line, or NONE if no external packages are needed>"""
 
     response = ask_ai(prompt)
+    retry_count = 0
+    while response.startswith("ERROR") and retry_count < 2:
+        time.sleep(5)
+        response = ask_ai(prompt)
+        retry_count += 1
+
     if "REQUIREMENTS:" in response:
         code_part, req_part = response.split("REQUIREMENTS:", 1)
         code = code_part.replace("CODE:", "").strip()
@@ -416,6 +422,8 @@ jobs:
         run: |
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
       - name: Run script
+        env:
+          CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
         run: python """ + GITHUB_CODE_FILE + """
 """
     return create_github_file(repo_name, ".github/workflows/run.yml", yaml_content, "Add code runner workflow")
