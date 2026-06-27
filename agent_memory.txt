@@ -1,0 +1,7 @@
+- I always want full‑file replacements, not partial diffs.  
+- Currently working on the **my‑chatbot‑v4** repository.  
+- Using a `make:` command (likely via GitHub Actions) to build the chatbot.  
+- The build fails because a required repository secret is missing.  
+- To fix it, add the needed secret under **Settings → Secrets and variables → Actions** in the repo.  
+- After adding the secret, re‑run the same `make:` command.  
+- Recent logs show Python 3.11.15 environment variables (e.g., `Python3_ROOT_DIR`, `LD_LIBRARY_PATH`).

@@ -5,7 +5,9 @@ import time
 import zipfile
 import io
 import base64
+import threading
 import requests
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 def read_file(filename):
     with open(filename, "r") as f:
@@ -230,8 +232,18 @@ def get_run_logs(repo_name, run_id):
     except Exception as e:
         return "ERROR reading logs: " + str(e)
 
+CEREBRAS_KEYS = [os.environ["CEREBRAS_API_KEY"]]
+_second_key = os.environ.get("CEREBRAS_API_KEY_2")
+if _second_key:
+    CEREBRAS_KEYS.append(_second_key)
+
+def get_key_for_index(i):
+    return CEREBRAS_KEYS[i % len(CEREBRAS_KEYS)]
+
+_thread_local = threading.local()
+
 def ask_ai(message):
-    api_key = os.environ["CEREBRAS_API_KEY"]
+    api_key = getattr(_thread_local, "api_key", None) or CEREBRAS_KEYS[0]
     try:
         response = requests.post(
             "https://api.cerebras.ai/v1/chat/completions",
@@ -539,9 +551,11 @@ def is_missing_secret_error(log_text):
 
 def build_and_fix_on_github(idea, repo_name):
     print("Building: " + idea)
+    _thread_local.api_key = get_key_for_index(0)
     write_code_for_github(idea)
     for attempt in range(1, MAX_GITHUB_ATTEMPTS + 1):
-        print("--- Attempt " + str(attempt) + " ---")
+        _thread_local.api_key = get_key_for_index(attempt)
+        print("--- Attempt " + str(attempt) + " --- (using API key #" + str((attempt % len(CEREBRAS_KEYS)) + 1) + ")")
         success, output = validate_python_on_github(repo_name)
         if success:
             username = get_github_username()
@@ -556,6 +570,7 @@ def build_and_fix_on_github(idea, repo_name):
                      "Add the required secret on the repo (Settings -> Secrets and variables -> Actions),\n"
                      "then run this same 'make:' command again.\nError seen:\n" + output)
         if attempt < MAX_GITHUB_ATTEMPTS:
+            _thread_local.api_key = get_key_for_index(attempt + 1)
             write_code_for_github(idea, previous_error=output)
         else:
             return "Could not get a working version after " + str(MAX_GITHUB_ATTEMPTS) + " attempts. Last error:\n" + output
@@ -644,9 +659,11 @@ NEW: <the replacement text>"""
     return old_text, new_text
 
 def make_plan(goal):
-    prompt = """Break this goal into the SMALLEST number of steps possible (usually 1-3, never more than 4).
-Each step must be a complete, standalone action that fully achieves part of the goal -
-do NOT separate "do X" from "report X", combine them into one step.
+    prompt = """Break this goal into the SMALLEST number of independent, standalone steps possible
+(usually 1-5, never more than 5). Each step must be a complete, standalone action that fully
+achieves part of the goal AND does not depend on the output of any other step, since these
+steps will run simultaneously, not in order. Do NOT separate "do X" from "report X", combine
+them into one step.
 
 Goal: """ + goal + """
 
@@ -808,6 +825,11 @@ def handle_step_with_retry(step, previous_results="", history="", max_retries=2)
             print("  (Retrying with: " + current_step + ")")
     return result, current_step
 
+def run_step_parallel(index, step, history):
+    _thread_local.api_key = get_key_for_index(index)
+    result, final_step = handle_step_with_retry(step, "", history)
+    return index, result, final_step
+
 conversation_history = load_history()
 if conversation_history:
     print("Loaded previous conversation history.")
@@ -869,14 +891,20 @@ while True:
         steps = make_plan(goal)
         if not steps:
             print("Could not create a plan. Try rephrasing the goal.")
-        else:
             previous_results = ""
-            for i, step in enumerate(steps, start=1):
-                print("Step " + str(i) + ": " + step)
-                result, final_step = handle_step_with_retry(step, previous_results, conversation_history)
-                print("Result:", result)
-                previous_results = previous_results + "\nStep " + str(i) + " (" + final_step + "): " + result
-                print("...")
+        else:
+            print("Running " + str(len(steps)) + " step(s) in parallel across " + str(len(CEREBRAS_KEYS)) + " API key(s)...")
+            results_by_index = {}
+            with ThreadPoolExecutor(max_workers=len(steps)) as executor:
+                futures = [executor.submit(run_step_parallel, i, step, conversation_history) for i, step in enumerate(steps)]
+                for future in as_completed(futures):
+                    index, result, final_step = future.result()
+                    results_by_index[index] = (result, final_step)
+                    print("Step " + str(index + 1) + " (" + final_step + ") finished: " + result[:200])
+            previous_results = ""
+            for i in range(len(steps)):
+                result, final_step = results_by_index[i]
+                previous_results = previous_results + "\nStep " + str(i + 1) + " (" + final_step + "): " + result
         print("Goal complete!")
         save_to_history(goal, previous_results)
         conversation_history = conversation_history + previous_results
