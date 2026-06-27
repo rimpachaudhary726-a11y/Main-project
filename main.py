@@ -262,6 +262,69 @@ def summarize_url(url):
     prompt = "Summarize this web page content in 3-4 sentences:\n\n" + content
     return ask_ai(prompt)
 
+MEMORY_FILE = "agent_memory.txt"
+
+def load_memory():
+    if not os.path.exists(MEMORY_FILE):
+        return ""
+    return read_file(MEMORY_FILE)
+
+def with_memory(prompt):
+    memory = load_memory()
+    if not memory:
+        return prompt
+    return "What you remember about this user and project so far:\n" + memory + "\n\n" + prompt
+
+def update_memory(interaction_summary):
+    current_memory = load_memory()
+    prompt = """Here is what this agent currently remembers about the user and how they like things done:
+""" + (current_memory if current_memory else "(nothing yet)") + """
+
+Here is a new interaction to learn from:
+""" + interaction_summary + """
+
+Update the memory: keep anything still useful, add any new lasting facts, preferences, or
+lessons about how this user likes the agent to behave. Keep it a short bullet list, max 25
+bullets, most important first. Reply with ONLY the updated bullet list, nothing else."""
+    updated = ask_ai(prompt)
+    write_file(MEMORY_FILE, updated.strip())
+    return updated
+
+def remember_note(note):
+    current_memory = load_memory()
+    new_memory = (current_memory + "\n- " + note).strip() if current_memory else "- " + note
+    write_file(MEMORY_FILE, new_memory)
+    return "Remembered: " + note
+
+LESSONS_FILE = "agent_lessons.txt"
+
+def load_lessons():
+    if not os.path.exists(LESSONS_FILE):
+        return ""
+    return read_file(LESSONS_FILE)
+
+def reflect_on_failure(idea, error_output):
+    current_lessons = load_lessons()
+    prompt = """An attempt to build this idea failed: """ + idea + """
+
+The error was:
+""" + error_output[:1500] + """
+
+Lessons already learned from past failures:
+""" + (current_lessons if current_lessons else "(none yet)") + """
+
+Extract ONE short, general, reusable lesson from this specific failure - something that
+would help avoid this entire CLASS of mistake in future, unrelated coding tasks (not specific
+to this one idea). If this lesson is basically a duplicate of one already listed above, reply
+with exactly: DUPLICATE
+Otherwise reply with ONLY the new lesson as a single bullet line, nothing else."""
+    lesson = ask_ai(prompt).strip()
+    if lesson and lesson.upper() != "DUPLICATE":
+        updated = (current_lessons + "\n- " + lesson).strip() if current_lessons else "- " + lesson
+        write_file(LESSONS_FILE, updated)
+        return lesson
+    return None
+
 GENERATED_CODE_FILE = "generated_script.py"
 MAX_CODE_ATTEMPTS = 3
 CODE_TIMEOUT_SECONDS = 10
@@ -328,6 +391,9 @@ GITHUB_REQUIREMENTS_FILE = "requirements.txt"
 MAX_GITHUB_ATTEMPTS = 4
 
 def write_code_for_github(idea, previous_error=""):
+    lessons = load_lessons()
+    lessons_block = ("\n\nLESSONS LEARNED FROM PAST FAILURES (apply these too):\n" + lessons) if lessons else ""
+
     base_rules = """The script must run end-to-end with no manual input required (don't use
 input(), since this runs non-interactively on GitHub Actions). External packages are fine if
 needed (e.g. requests). If the script needs an API key, read it with
@@ -343,7 +409,7 @@ CRITICAL RULES — do not violate these:
   endpoint = "https://api.cerebras.ai/v1/chat/completions"
   model = "gpt-oss-120b"
 - Never wrap the core logic in a broad try/except that swallows the error and substitutes
-  unrelated dummy output. A failed run must look like a failed run."""
+  unrelated dummy output. A failed run must look like a failed run.""" + lessons_block
 
     if previous_error:
         prompt = """Write a complete, standalone Python script for this idea: """ + idea + """
@@ -367,6 +433,8 @@ CODE:
 <the full python code>
 REQUIREMENTS:
 <one pip package per line, or NONE if no external packages are needed>"""
+
+    prompt = with_memory(prompt)
 
     response = ask_ai(prompt)
     retry_count = 0
@@ -480,6 +548,9 @@ def build_and_fix_on_github(idea, repo_name):
             return "Working version pushed after " + str(attempt) + " attempt(s): https://github.com/" + username + "/" + repo_name
         print("Failed:")
         print(output)
+        lesson = reflect_on_failure(idea, output)
+        if lesson:
+            print("Learned: " + lesson)
         if is_missing_secret_error(output):
             return ("Stopped early: this looks like a missing repo secret, not a code bug.\n"
                      "Add the required secret on the repo (Settings -> Secrets and variables -> Actions),\n"
@@ -580,7 +651,7 @@ do NOT separate "do X" from "report X", combine them into one step.
 Goal: """ + goal + """
 
 Reply with ONLY a numbered list, one step per line. No extra text."""
-    plan_text = ask_ai(prompt)
+    plan_text = ask_ai(with_memory(prompt))
     steps = []
     for line in plan_text.split("\n"):
         line = line.strip()
@@ -723,7 +794,7 @@ def handle_single_question(question, previous_results="", history=""):
         full_question = question
         if previous_results:
             full_question = "Context from earlier steps:\n" + previous_results + "\n\nTask: " + question
-        return ask_ai(full_question)
+        return ask_ai(with_memory(full_question))
 
 def handle_step_with_retry(step, previous_results="", history="", max_retries=2):
     current_step = step
@@ -742,7 +813,7 @@ if conversation_history:
     print("Loaded previous conversation history.")
 
 while True:
-    user_question = input("Ask me something, type 'goal: ...', type 'build: <idea>', type 'make: <idea> | repo_name', type 'github: repo_name | file_path | content', or quit: ")
+    user_question = input("Ask me something, type 'goal: ...', type 'build: <idea>', type 'make: <idea> | repo_name', type 'github: repo_name | file_path | content', type 'remember: <note>', type 'lessons', or quit: ")
 
     if user_question.lower() == "quit":
         print("Goodbye!")
@@ -760,6 +831,12 @@ while True:
             print(repo_result)
             file_result = create_github_file(repo_name, file_path, content)
             print(file_result)
+    elif user_question.lower().startswith("remember:"):
+        note = user_question[9:].strip()
+        print(remember_note(note))
+    elif user_question.lower() == "lessons":
+        lessons = load_lessons()
+        print(lessons if lessons else "No lessons learned yet.")
     elif user_question.lower().startswith("make:"):
         parts = user_question[5:].split("|")
         if len(parts) != 2:
@@ -769,6 +846,7 @@ while True:
             repo_name = parts[1].strip()
             result = build_and_fix_on_github(idea, repo_name)
             print(result)
+            update_memory("User asked to build: " + idea + " (repo: " + repo_name + "). Result: " + result[:500])
     elif user_question.lower().startswith("build:"):
         idea = user_question[6:].strip()
         result = build_and_fix_workflow(idea)
