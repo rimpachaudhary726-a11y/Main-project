@@ -1,1 +1,277 @@
-I’m sorry, but I can’t help with that.
+Below is a **drop‑in implementation** of the new helper `report_to_agent_city()`.  
+It lives alongside the other GitHub‑utility functions that you already have (`get_github_file_sha`, `update_github_file`, …).  
+
+```python
+# ─────────────────────────────────────────────────────────────────────────────
+#  file:  utils/github_status.py
+# ─────────────────────────────────────────────────────────────────────────────
+import base64
+import json
+import time
+from pathlib import Path
+from typing import Any, Dict, Optional
+
+import requests
+
+# ---------------------------------------------------------------------------
+#  Existing helper – you may already have something equivalent
+# ---------------------------------------------------------------------------
+def get_github_file_sha(
+    owner: str,
+    repo: str,
+    path: str,
+    branch: str = "main",
+    token: Optional[str] = None,
+) -> Optional[str]:
+    """
+    Return the SHA of the file at *path* (or ``None`` if the file does not exist).
+    """
+    headers = {"Accept": "application/vnd.github.v3+json"}
+    if token:
+        headers["Authorization"] = f"token {token}"
+
+    url = f"https://api.github.com/repos/{owner}/{repo}/contents/{path}"
+    resp = requests.get(url, headers=headers, params={"ref": branch})
+    if resp.status_code == 200:
+        return resp.json()["sha"]
+    if resp.status_code == 404:
+        return None
+    resp.raise_for_status()   # any other error – let the caller see it
+
+
+# ---------------------------------------------------------------------------
+#  Existing helper – you probably already call this to *create* or *update*
+# ---------------------------------------------------------------------------
+def update_github_file(
+    owner: str,
+    repo: str,
+    path: str,
+    content: str,
+    message: str,
+    branch: str = "main",
+    sha: Optional[str] = None,
+    token: Optional[str] = None,
+) -> Dict[str, Any]:
+    """
+    Create or replace a file in a GitHub repo.
+
+    Parameters
+    ----------
+    owner, repo, path : str
+        Where the file lives.
+    content : str
+        Raw (UTF‑8) text that will be base‑64‑encoded before sending.
+    message : str
+        Commit message.
+    sha : str | None
+        ``None`` → create a brand‑new file.
+        Existing SHA → update that exact blob.
+    token : str | None
+        If omitted the function will look for ``GITHUB_TOKEN`` in the env.
+    """
+    if token is None:
+        import os
+
+        token = os.getenv("GITHUB_TOKEN")
+        if not token:
+            raise RuntimeError("GitHub token not found – set GITHUB_TOKEN env var")
+
+    headers = {
+        "Accept": "application/vnd.github.v3+json",
+        "Authorization": f"token {token}",
+    }
+
+    payload = {
+        "message": message,
+        "content": base64.b64encode(content.encode()).decode(),
+        "branch": branch,
+    }
+    if sha:
+        payload["sha"] = sha
+
+    url = f"https://api.github.com/repos/{owner}/{repo}/contents/{path}"
+    resp = requests.put(url, headers=headers, json=payload)
+    resp.raise_for_status()
+    return resp.json()
+
+
+# ---------------------------------------------------------------------------
+#  NEW: report_to_agent_city()
+# ---------------------------------------------------------------------------
+def report_to_agent_city(
+    *,
+    repl_id: str,
+    label: str,
+    tools_index_path: Path,
+    owner: str,
+    repo: str,
+    branch: str = "main",
+    token: Optional[str] = None,
+) -> None:
+    """
+    Write (or update) ``/status/<repl_id>.json`` in the ``agent-city-live`` repo.
+
+    The JSON payload contains:
+
+    * ``repl_id``   – the caller’s unique id
+    * ``label``     – free‑form description (e.g. “my‑cool‑agent”)
+    * ``tools_built`` – number of tools currently recorded in the tools index
+    * ``status``    – ``"building"`` if a Dreamer cycle is active, otherwise ``"idle"``
+    * ``last_seen`` – Unix epoch timestamp (seconds)
+
+    The function first checks whether the file already exists with
+    :func:`get_github_file_sha`.  If the file exists we supply the SHA, so GitHub
+    overwrites the blob in‑place instead of creating a duplicate file.
+    """
+    # -----------------------------------------------------------------------
+    #  1️⃣  Load the tools index and count how many tools we have built.
+    # -----------------------------------------------------------------------
+    try:
+        with tools_index_path.open("r", encoding="utf-8") as f:
+            tools_index = json.load(f)
+        # We accept either a list of tool descriptors or a mapping of name → descriptor.
+        if isinstance(tools_index, dict):
+            tools_built = len(tools_index)
+        elif isinstance(tools_index, list):
+            tools_built = len(tools_index)
+        else:
+            raise ValueError("Unexpected tools index format")
+    except FileNotFoundError:
+        # If the index does not exist yet we treat it as zero.
+        tools_built = 0
+
+    # -----------------------------------------------------------------------
+    #  2️⃣  Detect whether a Dreamer cycle is currently drafting/registering.
+    # -----------------------------------------------------------------------
+    # --- Simple implementation ------------------------------------------------
+    # The repo already stores a single‑line status file at ``runtime/dreamer_state.txt``
+    # – you can replace this check with whatever your own code uses (a global flag,
+    # a lock file, a DB flag, etc.).
+    dreamer_state_path = Path("runtime/dreamer_state.txt")
+    if dreamer_state_path.is_file():
+        try:
+            state = dreamer_state_path.read_text().strip().lower()
+            is_building = state == "building"
+        except Exception:
+            is_building = False
+    else:
+        # Fallback – assume idle if we cannot see a flag.
+        is_building = False
+
+    status = "building" if is_building else "idle"
+
+    # -----------------------------------------------------------------------
+    #  3️⃣  Assemble the JSON payload.
+    # -----------------------------------------------------------------------
+    payload: Dict[str, Any] = {
+        "repl_id": repl_id,
+        "label": label,
+        "tools_built": tools_built,
+        "status": status,
+        "last_seen": int(time.time()),
+    }
+    payload_str = json.dumps(payload, indent=2, sort_keys=True)
+
+    # -----------------------------------------------------------------------
+    #  4️⃣  Determine if the file already exists → fetch its SHA.
+    # -----------------------------------------------------------------------
+    status_file_path = f"status/{repl_id}.json"
+    existing_sha = get_github_file_sha(
+        owner=owner,
+        repo=repo,
+        path=status_file_path,
+        branch=branch,
+        token=token,
+    )
+
+    # -----------------------------------------------------------------------
+    #  5️⃣  Push the change to GitHub.
+    # -----------------------------------------------------------------------
+    commit_msg = (
+        f"🟢 Report status for repl_id={repl_id} ("
+        f"{'update' if existing_sha else 'create'})"
+    )
+    update_github_file(
+        owner=owner,
+        repo=repo,
+        path=status_file_path,
+        content=payload_str,
+        message=commit_msg,
+        branch=branch,
+        sha=existing_sha,
+        token=token,
+    )
+```
+
+## How to wire it into the rest of your code‑base
+
+1. **Place the file**  
+   Save the snippet above as `utils/github_status.py` (or any module you already import from).
+
+2. **Import where you need it**  
+
+   ```python
+   from utils.github_status import report_to_agent_city
+   ```
+
+3. **Call it** – typical usage inside your Dreamer‑loop or anywhere you want to
+   broadcast the current health of a repl:
+
+   ```python
+   from pathlib import Path
+
+   # Example values – replace with your real configuration
+   REPL_ID = "abc123"
+   LABEL   = "my‑cool‑agent"
+   TOOLS_INDEX = Path("tools_index.json")   # <-- this file is the one you already keep
+   GITHUB_OWNER = "your‑org"
+   GITHUB_REPO  = "agent-city-live"
+
+   report_to_agent_city(
+       repl_id=REPL_ID,
+       label=LABEL,
+       tools_index_path=TOOLS_INDEX,
+       owner=GITHUB_OWNER,
+       repo=GITHUB_REPO,
+       branch="main",                # or whatever branch you push to
+       token=None,                   # will fall back to $GITHUB_TOKEN
+   )
+   ```
+
+4. **Dreamer‑status detection** – the helper looks for a tiny file
+   `runtime/dreamer_state.txt`.  
+   * Write `"building"` (case‑insensitive) into that file whenever a Dreamer cycle
+     begins, and clear it (or write `"idle"`/delete the file) when the cycle ends.  
+   * If your project already tracks this flag elsewhere, replace the block
+     marked **“Simple implementation”** with your own logic (e.g. a call to
+     `is_dreamer_active()`).
+
+5. **Permissions** – ensure the GitHub token you use has the **`repo`** scope
+   (or at least `contents:write`) for the target repo. The token can be supplied
+   explicitly via the `token=` argument or, more conveniently, exported as the
+   environment variable `GITHUB_TOKEN`.
+
+## What the function does, step‑by‑step
+
+| Step | What happens | Why it matters |
+|------|--------------|----------------|
+| **Read tools index** | Opens `tools_index_path` (JSON) and counts entries | Gives you a live count of how many tools have been built |
+| **Determine Dreamer status** | Looks at `runtime/dreamer_state.txt` (or a custom check) | Reports “building” only while a draft/register cycle is active |
+| **Create payload** | Packs `repl_id`, `label`, `tools_built`, `status`, `last_seen` into JSON | Matches the exact schema you requested |
+| **Get existing SHA** | Calls `get_github_file_sha` → `None` if file missing | Allows GitHub to **overwrite** instead of creating a duplicate |
+| **PUT to GitHub** | Calls `update_github_file` with the SHA (if any) | Guarantees a single `status/<repl_id>.json` file per repl |
+
+---
+
+### TL;DR – ready‑to‑paste snippet
+
+```python
+# add to your utils module … (see full code above)
+def report_to_agent_city(...):  # ← copy‑paste the whole function
+    ...
+```
+
+Now every time you invoke `report_to_agent_city(...)` the file
+`/status/<repl_id>.json` in **agent‑city‑live** will be either **created** or
+**updated in place**, keeping the directory clean and always reflecting the
+current state of the repl. Happy coding!

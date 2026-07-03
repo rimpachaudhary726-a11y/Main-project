@@ -1,0 +1,8 @@
+# Auto‑generated README
+
+| Script              | Description                                                                | Required Inputs | Example Command                                                                                                                               |
+| ---                 | ---                                                                        | ---             | ---                                                                                                                                           |
+| app.py              | A tiny utility that fetches the current Bitcoin price (USD) and prints it. |                 |                                                                                                                                               |
+| test_agent.py       |                                                                            |                 |                                                                                                                                               |
+| main.py             |                                                                            |                 | check (base == "ls") and then execute arbitrary chained commands.; "selftest"        -> runs and prints to console                            |
+| generated_script.py | auto_readme_generator.py                                                   |                 | Look ahead a few lines for something that looks like a command; Prefer docstring examples, else comment examples; Pad columns for readability |

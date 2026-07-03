@@ -1,0 +1,2 @@
+Retired: Lost showdown to tool_6 (a tool that fetches the top 5 latest news headlines using ne)
+Idea: a tool that fetches the top 5 latest news headlines using the NewsAPI service

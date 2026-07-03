@@ -47,3 +47,13 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# Sensitive - added by Apw
+api_keys_store.json
+.agents
+.config
+history_archive_*.txt
+decisions_log.json
+telegram_msg.txt
+repl_identity.json
+__pycache__

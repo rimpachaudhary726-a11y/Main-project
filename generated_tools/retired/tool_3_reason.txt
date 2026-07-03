@@ -1,0 +1,2 @@
+Retired: Lost showdown to tool_4 (a tool that fetches the current Bitcoin price and prints it)
+Idea: a tool that fetches the current Bitcoin price and prints it

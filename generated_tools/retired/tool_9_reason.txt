@@ -1,0 +1,2 @@
+Retired: Trust score dropped.
+Idea: print the number 42

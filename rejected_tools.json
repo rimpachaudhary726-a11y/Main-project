@@ -1,0 +1,372 @@
+[
+  {
+    "idea": "ERROR: rate limited on key #2",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1782831296.053686
+  },
+  {
+    "idea": "A command\u2011line script that fetches the current top\u202f5 trending GitHub repositories for a specified programming language (or overall), showing each repo\u2019s name, short description, star count, and URL. This provides a quick \u201cwhat\u2019s hot on GitHub\u201d snapshot for developers.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1782831611.2741575
+  },
+  {
+    "idea": "A command\u2011line \u201cdaily briefing\u201d script that, for a user\u2011specified city, retrieves the current weather, AQI, top 5 news headlines, and Bitcoin price, then prints a concise, formatted summary.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1782831916.9392066
+  },
+  {
+    "idea": "Create a tool that fetches real\u2011time exchange rates for any two currencies and returns the conversion rate along with a brief trend summary (e.g., \u201cUSD\u2192EUR: 0.913, up 0.3% over the past 24\u202fh\u201d).",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1782832527.3340518
+  },
+  {
+    "idea": "ERROR: rate limited on key #1",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1782833442.9068916
+  },
+  {
+    "idea": "Create a tool that retrieves the user's local sunrise and sunset times based on their IP-detected location, returning a clear summary and the remaining daylight hours for the current day.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1782833748.567384
+  },
+  {
+    "idea": "A tool that retrieves real\u2011time public transportation schedules (e.g., bus, train, subway) for a specified city and provides next\u2011arrival times with route and delay information.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1782834055.3507905
+  },
+  {
+    "idea": "A Python script that monitors a specified GitHub repository for new releases (or commits) and sends a desktop notification (or email) when an update occurs, using the GitHub API and a lightweight notification library.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1782834666.204273
+  },
+  {
+    "idea": "Create a tool that fetches the current public transportation schedule (e.g., next bus or train arrivals) for a user-specified stop, displaying real\u2011time updates and any service alerts.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1782834975.2666156
+  },
+  {
+    "idea": "A tool that fetches real\u2011time foreign exchange rates for any currency pair and returns a concise conversion table (e.g., 1\u202fUSD to EUR, GBP, JPY, etc.) with optional historical trend data.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1782835279.8840938
+  },
+  {
+    "idea": "A tool that queries the \u201c500+ AI Agent Projects\u201d GitHub repo, extracts the five projects with the highest star counts, and returns each project's name, star total, and a one\u2011sentence description \u2013 useful for quickly surfacing the most popular AI\u2011agent implementations.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1782836228.807134
+  },
+  {
+    "idea": "A Python script that, for a given GitHub username, scans all their public repositories, detects Python automation scripts (using keywords like \u201cautomation\u201d, \u201cscript\u201d, \u201ctask\u201d), extracts docstrings/comments to generate a concise markdown catalog with execution instructions and links\u2014helpful for showcasing and sharing automation work.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1782836550.1351438
+  },
+  {
+    "idea": "A tool that fetches real\u2011time air\u2011traffic data for a given airport, showing current arrival/departure counts and any significant delays, to help travelers quickly assess airport congestion.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1782838529.9124043
+  },
+  {
+    "idea": "A tool that queries the \u201c500+ AI Agent Projects\u201d GitHub repo, identifies the most\u2011starred AI\u2011agent project (or a random one on request), and returns its repository URL, brief description, and primary framework (e.g., LangGraph, CrewAI, etc.).",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1782838844.5578177
+  },
+  {
+    "idea": "A tool that fetches real\u2011time public transportation arrivals for a specified stop (e.g., bus or train) and returns the next few expected arrival times with any service alerts.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1782840006.6337435
+  },
+  {
+    "idea": "A tool that retrieves real\u2011time public transport arrival times for a given city (e.g., bus/train next\u2011stop ETA) and presents a concise, user\u2011friendly summary with delay alerts.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1782840312.6321929
+  },
+  {
+    "idea": "Create a tool that fetches the current top\u20115 trending GitHub repositories (by stars) for a given programming language and returns a concise summary (repo name, description, star count, and URL).",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1782844454.5622044
+  },
+  {
+    "idea": "Create a script that scans a GitHub repository for Python automation scripts, extracts their docstrings and comments, and auto\u2011generates a concise Markdown index with usage examples and dependency listings\u2014helpful for showcasing and documenting automation code.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1782844759.7039604
+  },
+  {
+    "idea": "Build a tool that queries the \u201c500+ AI Agent Projects & Use Cases\u201d GitHub repo, picks a random AI\u2011agent project (or filters by keyword), and returns its short description, main framework (e.g., LangGraph, CrewAI) and a link to its source \u2013 a handy one\u2011liner for discovering new agent examples.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1782881668.7774973
+  },
+  {
+    "idea": "A tool that retrieves the latest exchange rates for any currency pair (e.g., USD/EUR) from a reliable API and returns a concise summary with conversion examples and historical trend data.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1782881974.6323006
+  },
+  {
+    "idea": "Create a tool that queries GitHub for the most\u2011starred AI\u2011agent repositories (e.g., LangGraph, CrewAI, etc.), extracts each repo\u2019s description, primary language, and a short \u201cwhy it\u2019s useful\u201d summary, and returns a concise markdown list of the top\u202f10 projects.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1782882630.792783
+  },
+  {
+    "idea": "A script that queries the \u201c500\u2011AI\u2011Agents\u2011Projects\u201d GitHub repository, extracts the five most\u2011starred AI\u2011agent projects, and returns each project\u2019s name, short description, and star count.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1782892574.2786784
+  },
+  {
+    "idea": "A tool that retrieves and visualizes real\u2011time public transit schedules (e.g., bus or train arrivals) for a user\u2011specified city, offering live delays, next\u2011stop maps, and optional push notifications for route changes.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1782892881.3312817
+  },
+  {
+    "idea": "Create a tool that fetches the latest 50 public Instagram posts for a user\u2011specified hashtag, runs lightweight sentiment analysis on the captions, and returns a concise report of overall sentiment (+/-) along with the top three emerging sub\u2011hashtags.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1782972037.5645733
+  },
+  {
+    "idea": "Create a tool that fetches the latest 10 Instagram posts for a given hashtag, performs sentiment analysis on the captions using a lightweight NLP model, and returns a summary of the overall sentiment trend and the most frequently co\u2011occurring hashtags.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1782975722.1951067
+  },
+  {
+    "idea": "Create a tool that retrieves the current exchange rate between any two user\u2011specified currencies (e.g., USD to EUR) and returns a concise summary with a historical 30\u2011day trend chart.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1782976032.510026
+  },
+  {
+    "idea": "Create a tool that fetches the latest 10 Instagram posts for a given hashtag, extracts the caption text, performs sentiment analysis, and returns a concise summary of the overall sentiment trend for that hashtag.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1782976785.745949
+  },
+  {
+    "idea": "A tool that retrieves real\u2011time foreign\u2011exchange rates for any currency pair, returns the conversion result, and optionally displays a brief trend graph of the past week\u2019s rates.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1782977091.56782
+  },
+  {
+    "idea": "A CLI tool that scans a folder of Python automation scripts, extracts their docstrings/comments, and auto\u2011generates a searchable HTML gallery (with syntax\u2011highlighted code, descriptions, and \u201cRun\u201d buttons) to showcase and demo each script.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1782977709.9251444
+  },
+  {
+    "idea": "A tool that converts a given date\u2011time string to any specified timezone and returns the localized time with a human\u2011readable \u201ctime\u2011ago\u201d description (e.g., \u201c3 hours ago\u201d).",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1782978016.1510124
+  },
+  {
+    "idea": "A lightweight Python script that monitors the SSL/TLS certificates of a list of user\u2011specified domains, checks their expiry dates daily, and sends customizable email or desktop notifications when a certificate is within 30\u202fdays of expiring.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1782978633.5570471
+  },
+  {
+    "idea": "A tool that fetches the current exchange rate for any two user\u2011specified currencies and returns a concise summary with a timestamp and a link to a detailed rate history chart.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1782978941.9995308
+  },
+  {
+    "idea": "A script that pulls the top\u202f5\u202fNewsAPI headlines, sends them to a free AI model (e.g., via OpenRouter) and returns a concise, bullet\u2011point summary with key takeaways for each article.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1782979553.536473
+  },
+  {
+    "idea": "Create a tool that retrieves the real\u2011time exchange rate for any two user\u2011specified currencies (e.g., USD to EUR) and returns a short summary with the percentage change from the previous day.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1782979860.27554
+  },
+  {
+    "idea": "A CLI script that takes a user\u2011specified currency code (e.g., EUR, JPY) and prints the current USD exchange rate along with a brief trend note (e.g., \u201cUSD\u202f\u2192\u202fEUR:\u202f0.92\u202f(+0.3% today)\u201d). This can be built with a single request to a free API like exchangerate.host and formatted for easy terminal reading.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1782980480.060902
+  },
+  {
+    "idea": "Create a tool that retrieves real\u2011time exchange rates for any currency pair and provides a concise conversion summary, including historical trend chart data for the past week.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1782980786.1344676
+  },
+  {
+    "idea": "A CLI script that, given a programming language, fetches the current top\u202f5 trending GitHub repositories (name, description, star count, and URL) using the GitHub API and prints them in a concise table.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1782981396.2566154
+  },
+  {
+    "idea": "Create a tool that, given a city name, fetches the next 24\u2011hour forecast (temperature, precipitation, and wind) from a weather API and presents a concise, human\u2011readable summary with a simple emoji\u2011based outlook.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1782981702.2830534
+  },
+  {
+    "idea": "A script that retrieves the latest\u202fN\u202ftweets for a user\u2011specified hashtag (via the Twitter API) and returns a concise sentiment summary (positive/neutral/negative percentages) plus the top three emerging keywords.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1782983309.13707
+  },
+  {
+    "idea": "Create a tool that retrieves the current exchange rate for any two currencies (e.g., USD to EUR) from a reliable API and returns a concise summary with the rate, last update timestamp, and a simple trend indicator (up/down) based on the previous day's rate.",
+    "reason": "QUALITY: produced no output",
+    "rejected_at": 1782983611.3604522
+  },
+  {
+    "idea": "Create a tool that, given any city name, fetches the today\u2019s sunrise and sunset times (using an API like sunrise\u2011sunset.org) and returns a concise summary with the daylight duration and a \u201cgood time\u201d suggestion for outdoor activities.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1782984745.967982
+  },
+  {
+    "idea": "A script that, given any hashtag, pulls the latest 20 public Instagram posts (via the Instagram Graph API), extracts captions, runs a lightweight sentiment analysis, and returns a concise trend summary (e.g., \u201cpositive\u202f70\u202f%, neutral\u202f20\u202f%, negative\u202f10\u202f%).\u201d",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1782986713.8863475
+  },
+  {
+    "idea": "A tool that retrieves the latest COVID\u201119 statistics (cases, hospitalizations, deaths) for any specified country or region and presents a brief trend summary with key visual indicators.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1782987051.1962407
+  },
+  {
+    "idea": "A script that retrieves the current top\u201110 trending hashtags from Twitter (or Instagram) and returns a brief sentiment summary for each hashtag using a lightweight NLP library.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1782987771.4074926
+  },
+  {
+    "idea": "Create a tool that fetches the latest 10 Instagram posts for a given hashtag, performs sentiment analysis on each caption, and returns a concise trend summary (e.g., dominant sentiment, top keywords, and engagement metrics).",
+    "reason": "QUALITY: produced no output",
+    "rejected_at": 1782988650.4373739
+  },
+  {
+    "idea": "A tool that retrieves real\u2011time air\u2011traffic information for any airport (e.g., arrivals, departures, delays) and presents a concise summary for travelers or hobbyists.",
+    "reason": "QUALITY: produced no output",
+    "rejected_at": 1782988956.6540189
+  },
+  {
+    "idea": "A tool that fetches the latest foreign\u2011exchange rate between any two user\u2011specified currencies (e.g., USD to EUR) and returns a concise summary with the conversion rate and a timestamp.",
+    "reason": "QUALITY: produced no output",
+    "rejected_at": 1782990775.2276032
+  },
+  {
+    "idea": "Create a lightweight script that pulls the latest 50 Instagram posts for a user\u2011specified hashtag, extracts captions, runs sentiment analysis (e.g., via VADER or a small language model), and outputs a summary of overall sentiment plus the top three most common emojis.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1782991613.6334045
+  },
+  {
+    "idea": "A tool that fetches real\u2011time exchange rates for any currency pair and returns a concise summary with conversion examples (e.g., \u201c1\u202fUSD \u2248 0.92\u202fEUR\u201d) plus a simple historical trend chart for the past week.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1782991920.6037097
+  },
+  {
+    "idea": "A command\u2011line tool that, given a keyword, pulls the latest Reddit posts mentioning it, runs a lightweight sentiment analysis (e.g., using a pretrained HuggingFace model), and prints a concise summary of overall sentiment and top trending subreddits.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1783001535.035913
+  },
+  {
+    "idea": "A tool that fetches the current exchange rates for any two currencies (e.g., USD to EUR) and returns the conversion rate along with a brief historical trend chart for the past week.",
+    "reason": "QUALITY: produced no output",
+    "rejected_at": 1783001836.9677696
+  },
+  {
+    "idea": "A CLI script that fetches the most recent Instagram posts for a user\u2011specified hashtag, runs lightweight sentiment analysis (e.g., using VADER), and outputs a concise summary of sentiment distribution plus the top\u202f5 recurring keywords.",
+    "reason": "QUALITY: produced no output",
+    "rejected_at": 1783014446.7098901
+  },
+  {
+    "idea": "Create a tool that fetches the current time zone offset and local time for any city, returning a concise statement like \u201cLondon is UTC+0, local time: 14:32\u201d, useful for quickly coordinating across regions.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1783014752.4321902
+  },
+  {
+    "idea": "Create a lightweight CLI tool that fetches the latest Instagram posts for a given hashtag, runs a sentiment analysis (using a pretrained model like VADER or a Hugging Face transformer) on the captions, and outputs a summary of the overall sentiment trend and top keywords.",
+    "reason": "QUALITY: produced no output",
+    "rejected_at": 1783021615.6833878
+  },
+  {
+    "idea": "A command\u2011line Python script that, given a keyword, queries the YouTube Data API for the current top\u202f10 trending videos matching that keyword and prints each video's title, channel name, and URL.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1783023623.8799796
+  },
+  {
+    "idea": "Create a script that pulls the latest posts from the r/AI_Agents subreddit, extracts the most\u2011mentioned AI\u2011agent project names, and generates a short markdown list of the top 5 trending ideas with brief descriptions.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1783025047.5942645
+  },
+  {
+    "idea": "Create a tool that fetches the latest exchange rates for a user\u2011specified currency pair (e.g., USD/EUR) from a reliable API and returns a clean, formatted table with conversion rates, historical trend, and a quick \u201cbest\u2011day\u201d recommendation.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1783025386.557319
+  },
+  {
+    "idea": "A command\u2011line script that fetches the top 5 trending GitHub repositories for a specified programming language (using the GitHub Trending API or scraping), and prints each repo\u2019s name, star count, short description, and primary language.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1783026183.9479358
+  },
+  {
+    "idea": "A tool that takes a list of URLs (e.g., product pages) and returns a summary table of each page\u2019s title, meta description, and estimated reading time, helping users quickly audit SEO metadata across multiple sites.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1783026500.0689232
+  },
+  {
+    "idea": "A CLI tool that fetches the top\u202f5 hot posts from a user\u2011specified subreddit (via Reddit\u2019s public API) and returns each title, upvote count, and a one\u2011word sentiment tag (positive/negative/neutral) generated using a lightweight sentiment\u2011analysis library.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1783057811.9339092
+  },
+  {
+    "idea": "Create a tool that retrieves real\u2011time public transit schedules (e.g., bus or train arrival times) for a specified city and formats the next few departures in an easy\u2011to\u2011read summary, including delays and service alerts.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1783058120.2623954
+  },
+  {
+    "idea": "A command\u2011line Python script that scans a local or remote GitHub repo of automation scripts, extracts each script\u2019s docstring, comments, and usage examples, and auto\u2011generates a simple static HTML \u201cportfolio\u201d page with searchable cards showing script name, description, required inputs, and example commands.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1783058737.639999
+  },
+  {
+    "idea": "A tool that fetches real\u2011time foreign\u2011exchange rates for any currency pair (e.g., USD to EUR) and returns a concise conversion summary, including the current rate, a 7\u2011day trend chart, and a simple \u201chow much is X units?\u201d calculator.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1783059057.2355108
+  },
+  {
+    "idea": "A script that fetches the latest 20 public Instagram posts for a given hashtag, runs a lightweight sentiment analysis (e.g., using a pretrained Hugging Face model) to summarize the overall mood and top trending keywords, and outputs a concise report in JSON.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1783061520.7391644
+  },
+  {
+    "idea": "Create a tool that takes a user\u2011provided URL or text snippet and returns a concise summary plus key takeaways, using a lightweight LLM summarizer with optional sentiment analysis.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1783061829.9809563
+  },
+  {
+    "idea": "Create a lightweight command\u2011line tool that fetches the latest 50 Instagram posts for a user\u2011specified hashtag, extracts the caption text, and returns a summary of overall sentiment (positive, neutral, negative) plus the top three emerging keywords.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1783063040.1899571
+  },
+  {
+    "idea": "A tool that fetches the current time zone offset and local sunrise/sunset times for any city, returning a concise summary with a visual \u201cday/night\u201d indicator and suggested activities based on daylight hours.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1783063348.5841897
+  },
+  {
+    "idea": "A lightweight script that pulls the latest 100 tweets for a user\u2011specified hashtag, runs sentiment analysis (e.g., via VADER or HuggingFace), and outputs a concise summary of positive, neutral, and negative tweet counts plus the top three trending keywords.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1783065194.2109218
+  },
+  {
+    "idea": "A Python script that fetches the latest 50 Instagram posts for a given hashtag, performs sentiment analysis on the captions using a lightweight NLP library, and outputs a concise trend report with top positive/negative keywords and a simple sentiment score chart.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1783068866.1424496
+  },
+  {
+    "idea": "A script that fetches the most recent public Instagram posts for a user\u2011specified hashtag, runs sentiment analysis and keyword extraction on the captions, and returns a brief trend report highlighting the dominant sentiment and the top emerging topics.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1783077641.0173178
+  },
+  {
+    "idea": "A tool that retrieves real\u2011time public transit schedules (e.g., bus or train arrivals) for a user\u2011specified stop and returns the next three estimated arrival times with delay information.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1783077948.602018
+  },
+  {
+    "idea": "Create a script that queries Reddit\u2019s public API for the current top\u20115 posts in a specified subreddit (e.g., r/news), extracts their titles and comment counts, performs a quick sentiment analysis on the titles, and returns a concise summary showing each headline, its popularity metric, and a positive/negative/neutral sentiment label.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1783079143.9492497
+  },
+  {
+    "idea": "Create a tool that retrieves the current public transportation schedule (e.g., next train or bus arrivals) for a given city and stop, returning a concise list with departure times and any service alerts.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1783079452.0864382
+  },
+  {
+    "idea": "A tool that retrieves the latest exchange rates for any currency pair and outputs a concise table with conversion values and historical percentage changes over the past week.",
+    "reason": "QUALITY: code never ran successfully",
+    "rejected_at": 1783081412.6081433
+  }
+]

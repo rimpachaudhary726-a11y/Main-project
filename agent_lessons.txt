@@ -1,1 +1,2 @@
 - - Always verify that all required environment variables are defined and accessible before executing scripts or workflows.
+- - Verify that external services (e.g., API endpoints) are reachable and add robust error handling for DNS/network failures.

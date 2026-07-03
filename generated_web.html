@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Top 5 Latest News Headlines</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 1rem;
+            background: #f4f4f9;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        #content {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        #refreshBtn {
+            display: block;
+            margin: 1rem auto;
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+            cursor: pointer;
+            background: #0066cc;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+        }
+        #refreshBtn:hover {
+            background: #004999;
+        }
+        #status {
+            text-align: center;
+            margin: 0.5rem 0;
+            color: #555;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            margin: 0.8rem 0;
+            line-height: 1.4;
+        }
+        a {
+            text-decoration: none;
+            color: #0066cc;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .error {
+            color: #c00;
+        }
+    </style>
+</head>
+<body>
+    <div id="content">
+        <h1>Top 5 Latest News Headlines</h1>
+        <button id="refreshBtn">Refresh Headlines</button>
+        <div id="status">Loading...</div>
+        <ul id="headlines"></ul>
+    </div>
+
+    <script>
+        (function() {
+            const API_KEY = ''; // ← Insert your NewsAPI.org API key here
+            const ENDPOINT = 'https://newsapi.org/v2/top-headlines?country=us&pageSize=5';
+            const statusEl = document.getElementById('status');
+            const listEl = document.getElementById('headlines');
+            const refreshBtn = document.getElementById('refreshBtn');
+
+            function setStatus(message, isError) {
+                statusEl.textContent = message;
+                statusEl.className = isError ? 'error' : '';
+            }
+
+            function clearList() {
+                while (listEl.firstChild) {
+                    listEl.removeChild(listEl.firstChild);
+                }
+            }
+
+            async function fetchHeadlines() {
+                // Verify API key presence
+                if (!API_KEY) {
+                    setStatus('Error: No API key provided. Please edit the HTML and add your NewsAPI.org key.', true);
+                    clearList();
+                    return;
+                }
+
+                setStatus('Fetching latest headlines...');
+                clearList();
+
+                try {
+                    const response = await fetch(`${ENDPOINT}&apiKey=${encodeURIComponent(API_KEY)}`, {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    if (!response.ok) {
+                        // Attempt to parse error details
+                        let errorInfo = '';
+                        try {
+                            const errData = await response.json();
+                            errorInfo = errData.message ? ` (${errData.message})` : '';
+                        } catch (e) {
+                            // ignore JSON parse errors
+                        }
+                        throw new Error(`Network response was not ok${errorInfo}`);
+                    }
+
+                    const data = await response.json();
+
+                    if (!data.articles || data.articles.length === 0) {
+                        setStatus('No headlines found.', true);
+                        return;
+                    }
+
+                    data.articles.forEach(article => {
+                        const li = document.createElement('li');
+                        const a = document.createElement('a');
+                        a.href = article.url || '#';
+                        a.target = '_blank';
+                        a.rel = 'noopener noreferrer';
+                        a.textContent = article.title || 'Untitled';
+                        li.appendChild(a);
+                        listEl.appendChild(li);
+                    });
+
+                    setStatus('Latest headlines loaded.');
+                } catch (err) {
+                    console.error('Fetch error:', err);
+                    setStatus('Failed to load headlines. ' + err.message, true);
+                }
+            }
+
+            // Event listeners
+            refreshBtn.addEventListener('click', fetchHeadlines);
+
+            // Initial load
+            fetchHeadlines();
+        })();
+    </script>
+</body>
+</html>

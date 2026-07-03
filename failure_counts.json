@@ -1,0 +1,11 @@
+{
+  "unbalanced_tags": 2,
+  "unbalanced_angle_brackets": 1,
+  "unbalanced_tag": 1,
+  "dns_resolution_error": 1,
+  "missing_env_var": 1,
+  "dns_error": 1,
+  "missing_api_key": 1,
+  "test_category_xyz": 4,
+  "error:_rate_limited_on_key_#2": 12
+}

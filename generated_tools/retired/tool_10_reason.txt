@@ -1,0 +1,2 @@
+Retired: Lost showdown to tool_9 (print the number 42)
+Idea: print the number 42

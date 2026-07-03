@@ -1,0 +1,254 @@
+[
+  {
+    "id": "tool_1",
+    "idea": "a simple bouncing ball website with a colorful ball that bounces around the screen and changes color every time it hits an edge",
+    "type": "web",
+    "url": "https://rimpachaudhary726-a11y.github.io/agent-web-tools/tool_web_1/",
+    "folder": "tool_web_1",
+    "good_runs": 0,
+    "bad_runs": 0,
+    "time_sensitive": false
+  },
+  {
+    "id": "tool_2",
+    "idea": "a 3D solar system website using three.js, with the sun in the center and at least 4 planets orbiting around it at different speeds, each planet a different color and size, with a slowly rotating camera so you can see the whole system",
+    "type": "web",
+    "url": "https://rimpachaudhary726-a11y.github.io/agent-web-tools/tool_web_2/",
+    "folder": "tool_web_2",
+    "good_runs": 0,
+    "bad_runs": 0,
+    "time_sensitive": false
+  },
+  {
+    "id": "tool_4",
+    "idea": "a tool that fetches the current Bitcoin price and prints it",
+    "filepath": "generated_tools/tool_4.py",
+    "type": "local",
+    "contract": "plain",
+    "good_runs": 2,
+    "bad_runs": 0,
+    "time_sensitive": true,
+    "last_used": 1782987202.3832624
+  },
+  {
+    "id": "tool_5",
+    "idea": "a tool that fetches the current weather for London",
+    "filepath": "generated_tools/tool_5.py",
+    "type": "local",
+    "contract": "plain",
+    "good_runs": 0,
+    "bad_runs": 0,
+    "time_sensitive": true
+  },
+  {
+    "id": "tool_6",
+    "idea": "a tool that fetches the top 5 latest news headlines using newsapi.org",
+    "type": "web",
+    "url": "https://rimpachaudhary726-a11y.github.io/agent-web-tools/tool_web_3/",
+    "folder": "tool_web_3",
+    "good_runs": 1,
+    "bad_runs": 0,
+    "time_sensitive": false,
+    "last_used": 1782987202.3858304
+  },
+  {
+    "id": "tool_7",
+    "idea": "A tool that retrieves the current air quality index (AQI) for any user-specified city and returns a concise summary with health recommendations based on the AQI level.",
+    "filepath": "generated_tools/tool_7.py",
+    "type": "local",
+    "contract": "plain",
+    "good_runs": 0,
+    "bad_runs": 2,
+    "time_sensitive": true,
+    "last_used": 1783069719.4904962
+  },
+  {
+    "id": "tool_11",
+    "idea": "test trust tool",
+    "filepath": "generated_tools/tool_11.py",
+    "type": "local",
+    "contract": "plain",
+    "good_runs": 0,
+    "bad_runs": 1,
+    "time_sensitive": false,
+    "last_used": 1782987205.5026042
+  },
+  {
+    "id": "tool_13",
+    "idea": "print the number 42",
+    "filepath": "generated_tools/tool_13.py",
+    "type": "local",
+    "contract": "plain",
+    "good_runs": 1,
+    "bad_runs": 1,
+    "time_sensitive": false,
+    "last_used": 1783024497.2494905
+  },
+  {
+    "id": "tool_14",
+    "idea": "print the number 42",
+    "filepath": "generated_tools/tool_14.py",
+    "type": "local",
+    "contract": "plain",
+    "good_runs": 0,
+    "bad_runs": 1,
+    "time_sensitive": false,
+    "last_used": 1782987209.7820272
+  },
+  {
+    "id": "tool_15",
+    "idea": "test trust tool",
+    "filepath": "generated_tools/tool_15.py",
+    "type": "local",
+    "contract": "plain",
+    "good_runs": 0,
+    "bad_runs": 2,
+    "time_sensitive": false,
+    "last_used": 1782987210.8010902
+  },
+  {
+    "id": "tool_17",
+    "idea": "print the number 42",
+    "filepath": "generated_tools/tool_17.py",
+    "type": "local",
+    "contract": "plain",
+    "good_runs": 0,
+    "bad_runs": 0,
+    "time_sensitive": false
+  },
+  {
+    "id": "tool_18",
+    "idea": "print the number 42",
+    "filepath": "generated_tools/tool_18.py",
+    "type": "local",
+    "contract": "plain",
+    "good_runs": 0,
+    "bad_runs": 0,
+    "time_sensitive": false
+  },
+  {
+    "id": "tool_19",
+    "idea": "test trust tool",
+    "filepath": "generated_tools/tool_19.py",
+    "type": "local",
+    "contract": "plain",
+    "good_runs": 0,
+    "bad_runs": 2,
+    "time_sensitive": false,
+    "last_used": 1782987212.8000166
+  },
+  {
+    "id": "tool_21",
+    "idea": "print the number 42",
+    "filepath": "generated_tools/tool_21.py",
+    "type": "local",
+    "contract": "plain",
+    "good_runs": 0,
+    "bad_runs": 0,
+    "time_sensitive": false
+  },
+  {
+    "id": "tool_22",
+    "idea": "print the number 42",
+    "filepath": "generated_tools/tool_22.py",
+    "type": "local",
+    "contract": "plain",
+    "good_runs": 0,
+    "bad_runs": 0,
+    "time_sensitive": false
+  },
+  {
+    "id": "tool_23",
+    "idea": "test trust tool",
+    "filepath": "generated_tools/tool_23.py",
+    "type": "local",
+    "contract": "plain",
+    "good_runs": 2,
+    "bad_runs": 0,
+    "time_sensitive": false,
+    "last_used": 1782987214.9666083
+  },
+  {
+    "id": "tool_25",
+    "idea": "A command\u2011line Python tool that scans a directory of automation scripts, extracts each script\u2019s docstring and comment\u2011based usage examples, and auto\u2011generates a concise README (or markdown table) listing script names, brief descriptions, required inputs, and example commands.",
+    "filepath": "generated_tools/tool_25.py",
+    "type": "local",
+    "contract": "plain",
+    "good_runs": 0,
+    "bad_runs": 0,
+    "time_sensitive": false,
+    "source_context": "- A curated list of python scripts for automating your tasks - GitHub: This repository consists of a list of more than 60 Python scripts, primarily those which automate a specific task. Each folder contains one or more .py ... (https://github.com/wasmerio/Python-Scripts)\n- automation-tools \u00b7 GitHub Topics: Open source Make alternative, a workflow automation tool that is just as easy to use as it is deployed. go workflow integrations automation typescript zapier ... (https://github.com/topics/automation-tools)\n- GitHub - Best way to show my automation scripts? : r/QualityAssurance: Is GitHub the best way to show scripts I've worked on? I plan on creating scripts with detailed comments and supplying the APK file I use to run these test ... (https://www.reddit.com/r/QualityAssurance/comments/mip8fp/github_best_way_to_show_my_automation_scripts/)\n"
+  },
+  {
+    "id": "tool_26",
+    "idea": "Create a new public GitHub repo called \"agent-city-live\" (use `create_github_repo(\"agent-city-live\", description=\"Live 3D skyline of every agent building tools\", private=False)`) and build the full Ag",
+    "repo_name": "agent-city-live",
+    "type": "github",
+    "good_runs": 0,
+    "bad_runs": 0,
+    "time_sensitive": false
+  },
+  {
+    "id": "tool_27",
+    "idea": "\u200e**REPORTING SIDE (this agent's own code, not in the new repo):**",
+    "repo_name": "agent-reporting",
+    "type": "github",
+    "good_runs": 0,
+    "bad_runs": 0,
+    "time_sensitive": false
+  },
+  {
+    "id": "tool_28",
+    "idea": "\u200e**VIEWER SIDE (goes INSIDE the new agent-city-live repo, as `index.html` at the repo root, served via GitHub Pages):**",
+    "repo_name": "agent-city-live-viewer",
+    "type": "github",
+    "good_runs": 0,
+    "bad_runs": 0,
+    "time_sensitive": false
+  },
+  {
+    "id": "tool_29",
+    "idea": "Create a repo called build-verify-0703 with a home page that says \"Build Verification Test\" and push it to github",
+    "repo_name": "build-verify-0703",
+    "type": "github",
+    "good_runs": 0,
+    "bad_runs": 0,
+    "time_sensitive": false
+  },
+  {
+    "id": "tool_30",
+    "idea": "Create a repo called task-tracker-0703 with a multi-page task tracker web app: an index.html with a form to add tasks (title, priority, due date), a style.css for a clean dark-themed UI, and a script.",
+    "repo_name": "task-tracker-0703",
+    "type": "github",
+    "good_runs": 0,
+    "bad_runs": 0,
+    "time_sensitive": false
+  },
+  {
+    "id": "tool_31",
+    "idea": "Create a repo called expense-manager-0703 with a multi-page expense tracker web app: an index.html for adding expenses (description, amount, category dropdown: Food/Transport/Bills/Other, date), a das",
+    "repo_name": "expense-manager-0703",
+    "type": "github",
+    "good_runs": 0,
+    "bad_runs": 0,
+    "time_sensitive": false
+  },
+  {
+    "id": "tool_32",
+    "idea": "Create a repo called city-builder-0703 with a multi-page interactive city simulation web app:",
+    "repo_name": "city-builder-0703",
+    "type": "github",
+    "good_runs": 0,
+    "bad_runs": 0,
+    "time_sensitive": false
+  },
+  {
+    "id": "tool_33",
+    "idea": "All three pages must share the same building data via localStorage so upgrading a building on upgrade.html is reflected immediately on index.html and stats.html when navigated to. Push it to github an",
+    "repo_name": "building-sync",
+    "type": "github",
+    "good_runs": 0,
+    "bad_runs": 0,
+    "time_sensitive": false
+  }
+]

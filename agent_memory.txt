@@ -1,7 +1,16 @@
-- I always want full‑file replacements, not partial diffs.  
-- Currently working on the **my‑chatbot‑v4** repository.  
-- Using a `make:` command (likely via GitHub Actions) to build the chatbot.  
-- The build fails because a required repository secret is missing.  
-- To fix it, add the needed secret under **Settings → Secrets and variables → Actions** in the repo.  
-- After adding the secret, re‑run the same `make:` command.  
-- Recent logs show Python 3.11.15 environment variables (e.g., `Python3_ROOT_DIR`, `LD_LIBRARY_PATH`).
+- Primary repo: my‑chatbot‑v4 (make: commands)  
+- Build failures often stem from missing repository secrets; add them under Settings → Secrets and variables → Actions  
+- After adding a secret, confirm the action and re‑run the same `make:` command  
+- CI logs show a Python 3.11.15 environment (`Python3_ROOT_DIR`, `LD_LIBRARY_PATH`)  
+- Provide full‑file replacements, never partial diffs  
+- User prefers concise step‑by‑step instructions and wants to know how many attempts were needed  
+- Direct URLs to updated repositories/commits must be supplied when tasks complete  
+- bitcoin-price-tool – https://github.com/rimpachaudhary726-a11y/bitcoin-price-tool – latest successful commit `tool_3` after two attempts  
+- agent-city-live – https://github.com/rimpachaudhary726-a11y/agent-city-live – files: README.md, .gitignore, package.json, index.html, main.js (partial `pa`); tracked as `tool_26`; GitHub Pages enabled  
+- agent-reporting – https://github.com/rimpachaudhary726-a11y/agent-reporting – file: index.html at repo root; tracked as `tool_27`; Pages enabled  
+- agent-city-live-viewer – https://github.com/rimpachaudhary726-a11y/agent-city-live-viewer – file: index.html at repo root; Pages enabled  
+- build-verify-0703 – https://github.com/rimpachaudhary726-a11y/build-verify-0703 – file: index.html at repo root; tracked as `tool_29`; Pages enabled; live URL `https://rimpachaud…`  
+- task-tracker-0703 – https://github.com/rimpachaudhary726-a11y/task-tracker-0703 – files: index.html, style.css, script.js; tracked as `tool_30`; Pages enabled  
+- expense-manager-0703 – https://github.com/rimpachaudhary726-a11y/expense-manager-0703 – files: index.html, dashboard.html, style.css, script.js; tracked as `tool_31`; Pages enabled  
+- city-builder-0703 – https://github.com/rimpachaudhary726-a11y/city-builder-0703 – files: README.md, app.js, index.html, simulation.h; tracked as `tool_32`; Pages enabled  
+- building-sync – https://github.com/rimpachaudhary726-a11y/building-sync – files: index.html, upgrade.html, stats.html; tracked as `tool_33`; Pages enabled; live URL pending.
